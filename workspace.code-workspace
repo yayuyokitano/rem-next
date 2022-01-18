@@ -1,0 +1,14 @@
+{
+	"folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "authorize-discord"
+    },
+    {
+      "path": "hello-world"
+    }
+  ],
+  "settings": {}
+}

@@ -1,0 +1,27 @@
+{
+  "steps": [
+    {
+      "name": "golang",
+      "args": [
+        "bash",
+        "testcloud.sh"
+      ],
+      "secretEnv": [
+        "DISCORD_SECRET"
+      ]
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "args": [
+        "sh",
+        "deploy.sh"
+      ]
+    }
+  ],
+  "availableSecrets": {
+    "secretManager": [{
+      "versionName": "projects/rem-970606/secrets/DISCORD_SECRET/versions/latest",
+      "env": "DISCORD_SECRET"
+    }]
+  }
+}
