@@ -30,7 +30,6 @@ type AuthResponse struct {
 	discordError
 }
 
-//get user response. The user's keys are children of the "user" key.
 type UserResponse struct {
 	discordError
 	ID            string `json:"id"`
