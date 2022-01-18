@@ -16,8 +16,7 @@ for d in */ ; do
   while read p; do
     envList="${envList}${p}=$(gcloud secrets versions access latest --secret ${p}),"
   done < secretenv.txt
-  envList="${envList%,}"
 
-  gcloud functions deploy "${d%/}" --set-env-vars  --region=us-central1 --source . --trigger-http --runtime go116
+  gcloud functions deploy "${d%/}" --set-env-vars="${envList%,}"  --region=us-central1 --source . --trigger-http --runtime go116
   cd ../
 done
