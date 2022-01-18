@@ -5,9 +5,6 @@
     },
     {
       "path": "authorize-discord"
-    },
-    {
-      "path": "hello-world"
     }
   ],
   "settings": {}
