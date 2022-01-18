@@ -17,6 +17,6 @@ for d in */ ; do
     envList="${envList}${p}=$(gcloud secrets versions access latest --secret ${p}),"
   done < secretenv.txt
 
-  gcloud functions deploy "${d%/}" --set-env-vars="${envList%,}"  --region=us-central1 --source . --trigger-http --runtime go116
+  gcloud functions deploy "${d%/}" --set-env-vars="${envList%,}"  --region=us-central1 --source . --trigger-http --allow-unauthenticated --runtime go116
   cd ../
 done
