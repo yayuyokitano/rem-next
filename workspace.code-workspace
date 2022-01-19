@@ -5,6 +5,9 @@
     },
     {
       "path": "authorize-discord"
+    },
+    {
+      "path": "verify-user"
     }
   ],
   "settings": {}

@@ -91,8 +91,6 @@ func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
 
 	token, err := createToken(writer, userInfo, authInfo)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to create token", err)
 		return
 	}
 
@@ -115,7 +113,7 @@ func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-func getAuthInfo(writer http.ResponseWriter, code string) (authInfo AuthResponse, err error) {
+func getAuthInfo(writer http.ResponseWriter, code string) (auth AuthResponse, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 	clientID := os.Getenv("DISCORD_CLIENT_ID")
@@ -139,25 +137,23 @@ func getAuthInfo(writer http.ResponseWriter, code string) (authInfo AuthResponse
 	}
 	defer resp.Body.Close()
 
-	var discordResponse AuthResponse
-
-	if err = json.NewDecoder(resp.Body).Decode(&discordResponse); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&auth); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to decode discord response", err)
 		return
 	}
 
-	if discordResponse.AccessToken == "" {
+	if auth.AccessToken == "" {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to get access token from discord", discordResponse)
+		fmt.Fprint(writer, "Failed to get access token from discord", auth)
 		err = errors.New("Failed to get access token from discord")
 		return
 	}
 
-	return discordResponse, nil
+	return
 }
 
-func getUserInfo(writer http.ResponseWriter, accessToken string) (userInfo UserResponse, err error) {
+func getUserInfo(writer http.ResponseWriter, accessToken string) (user UserResponse, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 
@@ -181,22 +177,20 @@ func getUserInfo(writer http.ResponseWriter, accessToken string) (userInfo UserR
 	}
 	defer resp.Body.Close()
 
-	var discordResponse UserResponse
-
-	if err = json.NewDecoder(resp.Body).Decode(&discordResponse); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to decode discord response", err)
 		return
 	}
 
-	if discordResponse.ID == "" {
+	if user.ID == "" {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to get user info from discord", discordResponse)
+		fmt.Fprint(writer, "Failed to get user info from discord", user)
 		err = errors.New("Failed to get user info from discord")
 		return
 	}
 
-	return discordResponse, err
+	return
 
 }
 
@@ -228,6 +222,8 @@ func createToken(writer http.ResponseWriter, userInfo UserResponse, authInfo Aut
 		return
 	}
 
-	return tokenKey.ID, nil
+	token = tokenKey.ID
+
+	return
 
 }
