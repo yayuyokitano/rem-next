@@ -63,6 +63,8 @@ func init() {
 
 func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
 
+	writer.Header().Set("Access-Control-Allow-Origin", "https://rem.fm")
+
 	var params struct {
 		Code string `json:"code"`
 	}
