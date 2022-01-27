@@ -157,7 +157,7 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 	return
 }
 
-func updateToken(writer http.ResponseWriter, userInfo UserResponse, authInfo AuthResponse, token int64) (err error) {
+func updateToken(writer http.ResponseWriter, user UserResponse, auth AuthResponse, token int64) (err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -169,14 +169,16 @@ func updateToken(writer http.ResponseWriter, userInfo UserResponse, authInfo Aut
 	}
 	defer client.Close()
 
+	fmt.Println("Updating token", token, "with", auth.AccessToken)
+
 	_, err = client.Put(ctx, datastore.IDKey("Token", token, nil), &Token{
-		UserID:        userInfo.ID,
-		ExpiresAt:     time.Now().Unix() + int64(authInfo.ExpiresIn),
-		AccessToken:   authInfo.AccessToken,
-		RefreshToken:  authInfo.RefreshToken,
-		Username:      userInfo.Username,
-		Discriminator: userInfo.Discriminator,
-		Avatar:        userInfo.Avatar,
+		UserID:        user.ID,
+		ExpiresAt:     time.Now().Unix() + int64(auth.ExpiresIn),
+		AccessToken:   auth.AccessToken,
+		RefreshToken:  auth.RefreshToken,
+		Username:      user.Username,
+		Discriminator: user.Discriminator,
+		Avatar:        user.Avatar,
 	})
 
 	if err != nil {
@@ -189,7 +191,7 @@ func updateToken(writer http.ResponseWriter, userInfo UserResponse, authInfo Aut
 
 }
 
-func getUserInfo(writer http.ResponseWriter, accessToken string) (userInfo UserResponse, err error) {
+func getUserInfo(writer http.ResponseWriter, accessToken string) (user UserResponse, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 
@@ -213,26 +215,24 @@ func getUserInfo(writer http.ResponseWriter, accessToken string) (userInfo UserR
 	}
 	defer resp.Body.Close()
 
-	var discordResponse UserResponse
-
-	if err = json.NewDecoder(resp.Body).Decode(&discordResponse); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to decode discord response", err)
 		return
 	}
 
-	if discordResponse.ID == "" {
+	if user.ID == "" {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to get user info from discord", discordResponse)
+		fmt.Fprint(writer, "Failed to get user info from discord")
 		err = errors.New("Failed to get user info from discord")
 		return
 	}
 
-	return discordResponse, err
+	return
 
 }
 
-func refreshToken(writer http.ResponseWriter, refreshToken string) (authResponse AuthResponse, err error) {
+func refreshToken(writer http.ResponseWriter, refreshToken string) (auth AuthResponse, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 	clientID := os.Getenv("DISCORD_CLIENT_ID")
@@ -254,15 +254,15 @@ func refreshToken(writer http.ResponseWriter, refreshToken string) (authResponse
 	}
 	defer resp.Body.Close()
 
-	if err = json.NewDecoder(resp.Body).Decode(&authResponse); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&auth); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to decode discord response", err)
 		return
 	}
 
-	if authResponse.AccessToken == "" {
+	if auth.AccessToken == "" {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to get access token from discord", authResponse)
+		fmt.Fprint(writer, "Failed to get access token from discord")
 		err = errors.New("Failed to get access token from discord")
 		return
 	}
