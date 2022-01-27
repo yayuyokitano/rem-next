@@ -124,7 +124,7 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 		return
 	}
 
-	if tokenData.ExpiresAt > time.Now().Unix() {
+	if tokenData.ExpiresAt < time.Now().Unix() {
 		var auth AuthResponse
 		auth, err = refreshToken(writer, tokenData.RefreshToken)
 		if err != nil {
