@@ -124,40 +124,53 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 		return
 	}
 
+	// Refresh token if expired, else just fetch updated user data
+
 	if tokenData.ExpiresAt < time.Now().Unix() {
+
 		var auth AuthResponse
 		auth, err = refreshToken(writer, tokenData.RefreshToken)
 		if err != nil {
 			return
 		}
 
-		var user UserResponse
-		user, err = getUserInfo(writer, auth.AccessToken)
-		if err != nil {
-			return
-		}
-
-		err = updateToken(writer, user, auth, token)
-		if err != nil {
-			return
-		}
-
 		tokenData = Token{
-			UserID:        user.ID,
+			UserID:        tokenData.UserID,
 			ExpiresAt:     time.Now().Unix() + int64(auth.ExpiresIn),
 			AccessToken:   auth.AccessToken,
 			RefreshToken:  auth.RefreshToken,
-			Username:      user.Username,
-			Discriminator: user.Discriminator,
-			Avatar:        user.Avatar,
+			Username:      tokenData.Username,
+			Discriminator: tokenData.Discriminator,
+			Avatar:        tokenData.Avatar,
 		}
 
+	}
+
+	var user UserResponse
+	user, err = getUserInfo(writer, tokenData.AccessToken)
+	if err != nil {
+		return
+	}
+
+	err = updateToken(writer, user, tokenData, token)
+	if err != nil {
+		return
+	}
+
+	tokenData = Token{
+		UserID:        user.ID,
+		ExpiresAt:     tokenData.ExpiresAt,
+		AccessToken:   tokenData.AccessToken,
+		RefreshToken:  tokenData.RefreshToken,
+		Username:      user.Username,
+		Discriminator: user.Discriminator,
+		Avatar:        user.Avatar,
 	}
 
 	return
 }
 
-func updateToken(writer http.ResponseWriter, user UserResponse, auth AuthResponse, token int64) (err error) {
+func updateToken(writer http.ResponseWriter, user UserResponse, tokenData Token, token int64) (err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -169,13 +182,13 @@ func updateToken(writer http.ResponseWriter, user UserResponse, auth AuthRespons
 	}
 	defer client.Close()
 
-	fmt.Println("Updating token", token, "with", auth.AccessToken)
+	fmt.Println("Updating token", token, "with", tokenData.AccessToken)
 
 	_, err = client.Put(ctx, datastore.IDKey("Token", token, nil), &Token{
 		UserID:        user.ID,
-		ExpiresAt:     time.Now().Unix() + int64(auth.ExpiresIn),
-		AccessToken:   auth.AccessToken,
-		RefreshToken:  auth.RefreshToken,
+		ExpiresAt:     tokenData.ExpiresAt,
+		AccessToken:   tokenData.AccessToken,
+		RefreshToken:  tokenData.RefreshToken,
 		Username:      user.Username,
 		Discriminator: user.Discriminator,
 		Avatar:        user.Avatar,
