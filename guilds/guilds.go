@@ -113,7 +113,6 @@ func guilds(writer http.ResponseWriter, request *http.Request) {
 
 	guilds, err := getGuildList(writer, params.Token, params.UserID)
 	if err != nil {
-		writer.WriteHeader(http.StatusFailedDependency)
 		fmt.Fprint(writer, "Failed to fetch guild list", err)
 		return
 	}
@@ -144,7 +143,7 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to create datastore client", err)
+		fmt.Fprint(writer, "Failed to create datastore client: ")
 		return
 	}
 	defer client.Close()
@@ -152,12 +151,9 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 	var tokenData Token
 	err = client.Get(ctx, datastore.IDKey("Token", token, nil), &tokenData)
 	if err != nil || tokenData.UserID != userID {
-
 		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Unable to authorize user")
 		err = errors.New("Unable to authorize user")
 		return
-
 	}
 
 	guilds, err = attemptFetchGuild(tokenData.AccessToken, tokenData.UserID)
@@ -168,7 +164,7 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 		auth, err = refreshToken(tokenData.RefreshToken)
 		if err != nil {
 			writer.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprint(writer, "Failed to refresh token", err)
+			fmt.Fprint(writer, "Failed to refresh token: ")
 			return
 		}
 
@@ -184,15 +180,14 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(writer, "Failed to write refreshed token", err)
+			fmt.Fprint(writer, "Failed to write refreshed token: ")
 			return
 		}
 
 		guilds, err = attemptFetchGuild(auth.AccessToken, tokenData.UserID)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(writer, "Failed to fetch guild list", err)
-			return
+			fmt.Fprint(writer, "Failed to fetch guild list: ")
 		}
 	}
 
@@ -224,7 +219,6 @@ func attemptFetchGuild(token string, userID string) (guilds Guilds, err error) {
 
 	if len(guilds) == 0 {
 		err = errors.New("No guilds found.")
-		return
 	}
 	return
 }
