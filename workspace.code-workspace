@@ -13,7 +13,7 @@
       "path": "__postgres-init"
     },
     {
-      "path": "get-guilds"
+      "path": "guilds"
     }
   ],
   "settings": {}

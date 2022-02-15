@@ -1,4 +1,4 @@
-package remgetguilds
+package remguilds
 
 import (
 	"context"
@@ -65,7 +65,7 @@ type OnboardedGuilds []OnboardedGuild
 var pool *pgxpool.Pool
 
 func init() {
-	functions.HTTP("get-guilds", getGuilds)
+	functions.HTTP("guilds", guilds)
 }
 
 func contains(s []string, e string) bool {
@@ -85,19 +85,26 @@ func corsHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func getGuilds(writer http.ResponseWriter, request *http.Request) {
+func guilds(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
 
-	var params struct {
-		Token  int64  `json:"token"`
-		UserID string `json:"userID"`
-	}
-	if err := json.NewDecoder(request.Body).Decode(&params); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to decode request body", err)
+	urlParams := request.URL.Query()
+	token, err := strconv.ParseInt(urlParams.Get("token"), 10, 64)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Invalid token")
 		return
 	}
+
+	params := struct {
+		Token  int64
+		UserID string
+	}{
+		Token:  token,
+		UserID: urlParams.Get("userID"),
+	}
+
 	if params.Token == 0 || params.UserID == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(writer, "Missing parameters")
@@ -183,7 +190,7 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 
 		guilds, err = attemptFetchGuild(auth.AccessToken, tokenData.UserID)
 		if err != nil {
-			writer.WriteHeader(http.StatusNotFound)
+			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(writer, "Failed to fetch guild list", err)
 			return
 		}

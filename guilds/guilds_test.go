@@ -1,4 +1,4 @@
-package remgetguilds
+package remguilds
 
 import (
 	"encoding/json"
@@ -6,16 +6,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 )
 
-func TestGetGuilds(t *testing.T) {
+func TestGuilds(t *testing.T) {
 
-	params := fmt.Sprintf(`{"token":%s,"userID":"%s"}`, os.Getenv("REM_TEST_TOKEN"), os.Getenv("REM_TEST_USERID"))
+	query := fmt.Sprintf(`/guilds?token=%s&userID=%s}`, os.Getenv("REM_TEST_TOKEN"), os.Getenv("REM_TEST_USERID"))
 	writer := httptest.NewRecorder()
-	request := httptest.NewRequest("POST", "/get-guilds", strings.NewReader(params))
-	getGuilds(writer, request)
+	request := httptest.NewRequest("GET", query, nil)
+	guilds(writer, request)
 
 	var guildmap map[int64]int
 	if err := json.NewDecoder(writer.Body).Decode(&guildmap); err != nil {
@@ -36,10 +35,10 @@ func TestGetGuilds(t *testing.T) {
 		}
 	}
 
-	params = fmt.Sprintf(`{"token":%s,"userID":"%s"}`, "789384729388502839", "789384729388502839")
+	query = fmt.Sprintf(`/guilds?token=%s&userID=%s}`, "789384729388502839", "789384729388502839")
 	writer = httptest.NewRecorder()
-	request = httptest.NewRequest("POST", "/get-guilds", strings.NewReader(params))
-	getGuilds(writer, request)
+	request = httptest.NewRequest("GET", query, nil)
+	guilds(writer, request)
 
 	if writer.Code != http.StatusUnauthorized {
 		t.Errorf("Expected %d, got %d", http.StatusUnauthorized, writer.Code)
