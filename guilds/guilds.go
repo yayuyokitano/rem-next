@@ -90,11 +90,10 @@ func guilds(writer http.ResponseWriter, request *http.Request) {
 	corsHandler(writer, request)
 
 	urlParams := request.URL.Query()
-	fmt.Fprint(writer, urlParams)
 	token, err := strconv.ParseInt(urlParams.Get("token"), 10, 64)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Invalid token", err)
+		fmt.Fprint(writer, "Invalid token")
 		return
 	}
 
