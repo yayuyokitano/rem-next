@@ -8,6 +8,12 @@
     },
     {
       "path": "verify-user"
+    },
+    {
+      "path": "__postgres-init"
+    },
+    {
+      "path": "get-guilds"
     }
   ],
   "settings": {}

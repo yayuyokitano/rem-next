@@ -21,7 +21,7 @@ type discordError struct {
 	ErrorDescription string `json:"error_description"`
 }
 
-type AuthResponse struct {
+type Auth struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
@@ -30,7 +30,7 @@ type AuthResponse struct {
 	discordError
 }
 
-type UserResponse struct {
+type User struct {
 	discordError
 	ID            string `json:"id"`
 	Username      string `json:"username"`
@@ -128,7 +128,7 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 
 	if tokenData.ExpiresAt < time.Now().Unix() {
 
-		var auth AuthResponse
+		var auth Auth
 		auth, err = refreshToken(writer, tokenData.RefreshToken)
 		if err != nil {
 			return
@@ -146,7 +146,7 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 
 	}
 
-	var user UserResponse
+	var user User
 	user, err = getUserInfo(writer, tokenData.AccessToken)
 	if err != nil {
 		return
@@ -170,7 +170,7 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 	return
 }
 
-func updateToken(writer http.ResponseWriter, user UserResponse, tokenData Token, token int64) (err error) {
+func updateToken(writer http.ResponseWriter, user User, tokenData Token, token int64) (err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -204,7 +204,7 @@ func updateToken(writer http.ResponseWriter, user UserResponse, tokenData Token,
 
 }
 
-func getUserInfo(writer http.ResponseWriter, accessToken string) (user UserResponse, err error) {
+func getUserInfo(writer http.ResponseWriter, accessToken string) (user User, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 
@@ -245,7 +245,7 @@ func getUserInfo(writer http.ResponseWriter, accessToken string) (user UserRespo
 
 }
 
-func refreshToken(writer http.ResponseWriter, refreshToken string) (auth AuthResponse, err error) {
+func refreshToken(writer http.ResponseWriter, refreshToken string) (auth Auth, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 	clientID := os.Getenv("DISCORD_CLIENT_ID")
