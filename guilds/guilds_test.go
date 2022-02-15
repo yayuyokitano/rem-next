@@ -18,7 +18,7 @@ func TestGuilds(t *testing.T) {
 
 	var onboarded OnboardedGuilds
 	if err := json.NewDecoder(writer.Body).Decode(&onboarded); err != nil {
-		t.Error("Failed to decode service response", err)
+		t.Error("Failed to decode service response: ", onboarded, "\n", err)
 		return
 	}
 
