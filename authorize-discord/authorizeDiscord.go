@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -61,9 +62,26 @@ func init() {
 	functions.HTTP("authorize-discord", authorizeDiscord)
 }
 
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func corsHandler(writer http.ResponseWriter, request *http.Request) {
+	allowed := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	origin := request.Header.Get("Origin")
+	if contains(allowed, origin) {
+		writer.Header().Set("Access-Control-Allow-Origin", origin)
+	}
+}
+
 func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
 
-	writer.Header().Set("Access-Control-Allow-Origin", "https://rem.fm")
+	corsHandler(writer, request)
 
 	var params struct {
 		Code string `json:"code"`

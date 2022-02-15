@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -67,9 +68,26 @@ func init() {
 	functions.HTTP("get-guilds", getGuilds)
 }
 
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func corsHandler(writer http.ResponseWriter, request *http.Request) {
+	allowed := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	origin := request.Header.Get("Origin")
+	if contains(allowed, origin) {
+		writer.Header().Set("Access-Control-Allow-Origin", origin)
+	}
+}
+
 func getGuilds(writer http.ResponseWriter, request *http.Request) {
 
-	writer.Header().Set("Access-Control-Allow-Origin", "https://rem.fm")
+	corsHandler(writer, request)
 
 	var params struct {
 		Token  int64  `json:"token"`
