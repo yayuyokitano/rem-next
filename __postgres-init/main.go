@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	fmt.Println("a")
 	ctx := context.Background()
 
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
@@ -19,15 +18,14 @@ func main() {
 		panic(err)
 	}
 	defer conn.Close(ctx)
-	fmt.Println("a")
 	_, err = conn.Exec(ctx, "\\connect "+os.Getenv("DATABASE_NAME"))
+	_, err = conn.Exec(ctx, "DROP TABLE guilds")
 	_, err = conn.Exec(ctx, `CREATE TABLE guilds(
-		guildID bigint PRIMARY KEY
+		guildID VARCHAR(18) PRIMARY KEY
 	)`)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("a")
 
 	var res []struct {
 		Schemaname  string

@@ -44,7 +44,7 @@ type Token struct {
 }
 
 type Guild struct {
-	ID          int64    `json:"id"`
+	ID          string   `json:"id"`
 	Name        string   `json:"name"`
 	Icon        string   `json:"icon"`
 	IsOwner     bool     `json:"owner"`
@@ -180,14 +180,14 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(writer, "Failed to write refreshed token: ")
+			fmt.Fprint(writer, "Failed to write refreshed token: ", err)
 			return
 		}
 
 		guilds, err = attemptFetchGuild(auth.AccessToken, tokenData.UserID)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(writer, "Failed to fetch guild list: ")
+			fmt.Fprint(writer, "Failed to fetch guild list: ", err)
 		}
 	}
 
@@ -197,7 +197,7 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 func attemptFetchGuild(token string, userID string) (guilds Guilds, err error) {
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 
-	req, err := http.NewRequest("GET", baseUri+"/users/@me", nil)
+	req, err := http.NewRequest("GET", baseUri+"/users/@me/guilds", nil)
 	if err != nil {
 		return
 	}
@@ -260,13 +260,13 @@ func checkOnboardedGuilds(writer http.ResponseWriter, guilds Guilds) (onboarded 
 	if pool == nil {
 		ctx := context.Background()
 
-		pool, err = pgxpool.Connect(ctx, os.Getenv("DATABASE_PRIVATE_URL"))
+		pool, err = pgxpool.Connect(ctx, os.Getenv("DATABASE_URL"))
 		if err != nil {
 			return
 		}
 	}
 
-	cachedGuilds, err := pool.Query(context.Background(), "SELECT guild_id FROM guilds WHERE guild_id IN ($1)", guilds.IDList())
+	cachedGuilds, err := pool.Query(context.Background(), "SELECT guildID FROM guilds WHERE guildID = ANY($1)", guilds.IDList())
 	if err != nil {
 		return
 	}
@@ -286,7 +286,7 @@ func checkOnboardedGuilds(writer http.ResponseWriter, guilds Guilds) (onboarded 
 	for _, guild := range guilds {
 		onboarded = append(onboarded, OnboardedGuild{
 			Guild:       guild,
-			RemIsMember: guildIDMap[strconv.FormatInt(guild.ID, 10)],
+			RemIsMember: guildIDMap[guild.ID],
 		})
 	}
 
@@ -296,8 +296,8 @@ func checkOnboardedGuilds(writer http.ResponseWriter, guilds Guilds) (onboarded 
 
 func (guilds Guilds) IDList() []string {
 	idList := make([]string, len(guilds))
-	for _, guild := range guilds {
-		idList = append(idList, strconv.FormatInt(guild.ID, 10))
+	for index, guild := range guilds {
+		idList[index] = guild.ID
 	}
 	return idList
 }
