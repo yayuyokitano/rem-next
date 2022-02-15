@@ -260,7 +260,7 @@ func checkOnboardedGuilds(writer http.ResponseWriter, guilds Guilds) (onboarded 
 	if pool == nil {
 		ctx := context.Background()
 
-		pool, err = pgxpool.Connect(ctx, os.Getenv("DATABASE_URL"))
+		pool, err = pgxpool.Connect(ctx, os.Getenv("DATABASE_PRIVATE_URL"))
 		if err != nil {
 			return
 		}
