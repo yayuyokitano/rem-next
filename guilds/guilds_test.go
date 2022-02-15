@@ -16,9 +16,10 @@ func TestGuilds(t *testing.T) {
 	request := httptest.NewRequest("GET", query, nil)
 	guilds(writer, request)
 
+	t.Error(writer.Body)
 	var onboarded OnboardedGuilds
 	if err := json.NewDecoder(writer.Body).Decode(&onboarded); err != nil {
-		t.Error("Failed to decode service response: ", writer.Body, "\n", err)
+		t.Error("Failed to decode service response: ", "\n", err)
 		return
 	}
 
