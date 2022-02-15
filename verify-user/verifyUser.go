@@ -72,7 +72,7 @@ func contains(s []string, e string) bool {
 }
 
 func corsHandler(writer http.ResponseWriter, request *http.Request) {
-	allowed := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	allowed := strings.Split(os.Getenv("ALLOWED_ORIGINS"), "||")
 	origin := request.Header.Get("Origin")
 	if contains(allowed, origin) {
 		writer.Header().Set("Access-Control-Allow-Origin", origin)
