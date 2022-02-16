@@ -1,4 +1,4 @@
-module github.com/yayuyokitano/rem-next/get-guilds
+module github.com/yayuyokitano/rem-next/guilds
 
 go 1.16
 
