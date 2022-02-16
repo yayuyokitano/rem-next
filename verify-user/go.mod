@@ -1,4 +1,4 @@
-module github.com/yayuyokitano/rem-next/authorize-discord
+module github.com/yayuyokitano/rem-next/verify-user
 
 go 1.16
 
