@@ -117,6 +117,8 @@ func guilds(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	guilds = guilds.FilterAdmin()
+
 	onboardedGuilds, err := checkOnboardedGuilds(writer, guilds)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -292,6 +294,23 @@ func checkOnboardedGuilds(writer http.ResponseWriter, guilds Guilds) (onboarded 
 
 	return
 
+}
+
+func (guilds Guilds) FilterAdmin() Guilds {
+	adminGuilds := make(Guilds, 0)
+	ADMINISTRATOR := int64(8)
+
+	for _, guild := range guilds {
+		perms, err := strconv.ParseInt(guild.Permissions, 10, 64)
+		if err != nil {
+			continue
+		}
+
+		if perms&ADMINISTRATOR != 0 {
+			adminGuilds = append(adminGuilds, guild)
+		}
+	}
+	return adminGuilds
 }
 
 func (guilds Guilds) IDList() []string {
