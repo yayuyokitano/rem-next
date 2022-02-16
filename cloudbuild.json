@@ -3,8 +3,7 @@
     {
       "name": "golang",
       "args": [
-        "bash",
-        "testcloud.sh"
+        "bash", "testcloud.sh"
       ],
       "secretEnv": [
         "DISCORD_SECRET",
@@ -16,8 +15,7 @@
     {
       "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
       "args": [
-        "bash",
-        "deploy.sh"
+        "bash", "deploy.sh"
       ]
     }
   ],
@@ -27,7 +25,7 @@
       "env": "DISCORD_SECRET"
     },
     {
-      "versionName": "projects/rem-970606/secrets/DATABASE_PRIVATE_URL/versions/latest",
+      "versionName": "projects/rem-970606/secrets/DATABASE_CLOUD_URL/versions/latest",
       "env": "DATABASE_PRIVATE_URL"
     },
     {
