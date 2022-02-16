@@ -56,8 +56,8 @@ type Guild struct {
 type Guilds []Guild
 
 type OnboardedGuild struct {
-	Guild       Guild
-	RemIsMember bool `json:"remIsMember"`
+	Guild       Guild `json:"guild"`
+	RemIsMember bool  `json:"remIsMember"`
 }
 
 type OnboardedGuilds []OnboardedGuild
