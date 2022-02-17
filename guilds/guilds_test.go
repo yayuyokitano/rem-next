@@ -39,6 +39,15 @@ func TestGuilds(t *testing.T) {
 		}
 	}
 
+	//check that the guilds are sorted
+	allTrue := true
+	for _, guild := range onboarded {
+		if guild.RemIsMember && !allTrue {
+			t.Errorf("Rem is member of Guild %s yet a non-membered guild appeared before it", guild.Guild.ID)
+		}
+		allTrue = allTrue && guild.RemIsMember
+	}
+
 	query = fmt.Sprintf(`/guilds?token=%s&userID=%s}`, "789384729388502839", "789384729388502839")
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("GET", query, nil)

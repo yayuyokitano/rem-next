@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -61,6 +62,16 @@ type OnboardedGuild struct {
 }
 
 type OnboardedGuilds []OnboardedGuild
+
+func (o OnboardedGuilds) Len() int {
+	return len(o)
+}
+func (o OnboardedGuilds) Less(i, j int) bool {
+	return o[i].RemIsMember && !o[j].RemIsMember
+}
+func (o OnboardedGuilds) Swap(i, j int) {
+	o[i], o[j] = o[j], o[i]
+}
 
 var pool *pgxpool.Pool
 
@@ -291,6 +302,8 @@ func checkOnboardedGuilds(writer http.ResponseWriter, guilds Guilds) (onboarded 
 			RemIsMember: guildIDMap[guild.ID],
 		})
 	}
+
+	sort.Sort(OnboardedGuilds(onboarded))
 
 	return
 
