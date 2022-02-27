@@ -36,5 +36,6 @@
       "versionName": "projects/rem-970606/secrets/REM_TEST_TOKEN/versions/latest",
       "env": "REM_TEST_TOKEN"
     }]
-  }
+  },
+  "timeout": "60000s"
 }
