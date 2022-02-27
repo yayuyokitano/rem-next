@@ -1,4 +1,4 @@
-package remauthorizediscord
+package remauthorizeuser
 
 import (
 	"context"
@@ -22,7 +22,7 @@ type UserDetails struct {
 	ExpiresAt    int64  `firestore:"expiresAt"`
 }
 
-func TestAuthorizeDiscord(t *testing.T) {
+func TestAuthorizeUser(t *testing.T) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 	defer gock.DisableNetworking()
@@ -43,7 +43,7 @@ func TestAuthorizeDiscord(t *testing.T) {
 	writer := httptest.NewRecorder()
 	request := httptest.NewRequest("POST", "/authorize-discord", strings.NewReader(params))
 
-	authorizeDiscord(writer, request)
+	authorizeUser(writer, request)
 
 	var tokenResponse TokenResponse
 	if err := json.NewDecoder(writer.Body).Decode(&tokenResponse); err != nil {
@@ -90,7 +90,7 @@ func TestAuthorizeDiscord(t *testing.T) {
 	request = httptest.NewRequest("POST", "/authorize-discord", strings.NewReader(params))
 	expectedString := "Failed to get access token from discord{  0   {0  invalid_request Invalid \"code\" in request.}}"
 
-	authorizeDiscord(writer, request)
+	authorizeUser(writer, request)
 	if writer.Body.String() != expectedString {
 		t.Errorf("Expected %s, got %s", expectedString, writer.Body.String())
 	}

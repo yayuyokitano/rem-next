@@ -19,10 +19,19 @@ func main() {
 	}
 	defer conn.Close(ctx)
 	_, err = conn.Exec(ctx, "\\connect "+os.Getenv("DATABASE_NAME"))
-	_, err = conn.Exec(ctx, "DROP TABLE guilds")
-	_, err = conn.Exec(ctx, `CREATE TABLE guilds(
+	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guilds(
 		guildID VARCHAR(18) PRIMARY KEY
 	)`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS commands(
+		commandID VARCHAR(18) PRIMARY KEY,
+		guildID VARCHAR(18) NOT NULL,
+		commandName VARCHAR(18) NOT NULL
+	)`)
+	_, err = conn.Exec(ctx, `CREATE INDEX command ON commands(guildID, commandName)`)
 	if err != nil {
 		panic(err)
 	}

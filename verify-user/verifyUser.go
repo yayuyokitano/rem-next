@@ -56,6 +56,7 @@ type TokenResponse struct {
 	Discriminator string `json:"discriminator"`
 	Avatar        string `json:"avatar"`
 	Token         int64  `json:"token"`
+	AccessToken   string `json:"accessToken"`
 }
 
 func init() {
@@ -109,6 +110,7 @@ func verifyUser(writer http.ResponseWriter, request *http.Request) {
 		Discriminator: token.Discriminator,
 		Avatar:        token.Avatar,
 		Token:         params.Token,
+		AccessToken:   token.AccessToken,
 	})
 
 	if err != nil {
@@ -199,8 +201,6 @@ func updateToken(writer http.ResponseWriter, user User, tokenData Token, token i
 		return
 	}
 	defer client.Close()
-
-	fmt.Println("Updating token", token, "with", tokenData.AccessToken)
 
 	_, err = client.Put(ctx, datastore.IDKey("Token", token, nil), &Token{
 		UserID:        user.ID,

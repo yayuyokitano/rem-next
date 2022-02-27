@@ -1,4 +1,4 @@
-package remauthorizediscord
+package remauthorizeguild
 
 import (
 	"context"
@@ -22,44 +22,34 @@ type discordError struct {
 	ErrorDescription string `json:"error_description"`
 }
 
-type AuthResponse struct {
+type Guild struct {
+	ID string `json:"id"`
+}
+
+type GuildResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
 	Scope        string `json:"scope"`
+	Guild        Guild  `json:"guild"`
 	discordError
-}
-
-type UserResponse struct {
-	discordError
-	ID            string `json:"id"`
-	Username      string `json:"username"`
-	Discriminator string `json:"discriminator"`
-	Avatar        string `json:"avatar"`
-	PublicFlags   int    `json:"public_flags"`
 }
 
 type Token struct {
-	UserID        string `datastore:"userID"`
-	ExpiresAt     int64  `datastore:"expiresAt"`
-	AccessToken   string `datastore:"accessToken"`
-	RefreshToken  string `datastore:"refreshToken"`
-	Username      string `datastore:"username"`
-	Discriminator string `datastore:"discriminator"`
-	Avatar        string `datastore:"avatar"`
+	GuildID      string `datastore:"guildID"`
+	ExpiresAt    int64  `datastore:"expiresAt"`
+	AccessToken  string `datastore:"accessToken"`
+	RefreshToken string `datastore:"refreshToken"`
 }
 
 type TokenResponse struct {
-	UserID        string `json:"userID"`
-	Username      string `json:"username"`
-	Discriminator string `json:"discriminator"`
-	Avatar        string `json:"avatar"`
-	Token         int64  `json:"token"`
+	GuildID string `json:"guildID"`
+	Token   string `json:"token"`
 }
 
 func init() {
-	functions.HTTP("authorize-discord", authorizeDiscord)
+	functions.HTTP("authorize-guild", authorizeGuild)
 }
 
 func contains(s []string, e string) bool {
@@ -79,7 +69,7 @@ func corsHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
+func authorizeGuild(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
 
@@ -97,27 +87,19 @@ func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	authInfo, err := getAuthInfo(writer, params.Code)
+	guild, err := getGuildInfo(writer, params.Code)
 	if err != nil {
 		return
 	}
 
-	userInfo, err := getUserInfo(writer, authInfo.AccessToken)
-	if err != nil {
-		return
-	}
-
-	token, err := createToken(writer, userInfo, authInfo)
+	guildID, err := createToken(writer, guild)
 	if err != nil {
 		return
 	}
 
 	jsonResponse, err := json.Marshal(TokenResponse{
-		UserID:        userInfo.ID,
-		Username:      userInfo.Username,
-		Discriminator: userInfo.Discriminator,
-		Avatar:        userInfo.Avatar,
-		Token:         token,
+		GuildID: guild.Guild.ID,
+		Token:   guildID,
 	})
 
 	if err != nil {
@@ -131,7 +113,7 @@ func authorizeDiscord(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-func getAuthInfo(writer http.ResponseWriter, code string) (auth AuthResponse, err error) {
+func getGuildInfo(writer http.ResponseWriter, code string) (auth GuildResponse, err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 	clientID := os.Getenv("DISCORD_CLIENT_ID")
@@ -171,48 +153,7 @@ func getAuthInfo(writer http.ResponseWriter, code string) (auth AuthResponse, er
 	return
 }
 
-func getUserInfo(writer http.ResponseWriter, accessToken string) (user UserResponse, err error) {
-
-	baseUri := os.Getenv("DISCORD_BASE_URI")
-
-	req, err := http.NewRequest("GET", baseUri+"/users/@me", nil)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to create request to discord", err)
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-
-	if err != nil {
-		writer.WriteHeader(http.StatusFailedDependency)
-		fmt.Fprint(writer, "Discord request failed", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if err = json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to decode discord response", err)
-		return
-	}
-
-	if user.ID == "" {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to get user info from discord", user)
-		err = errors.New("Failed to get user info from discord")
-		return
-	}
-
-	return
-
-}
-
-func createToken(writer http.ResponseWriter, userInfo UserResponse, authInfo AuthResponse) (token int64, err error) {
+func createToken(writer http.ResponseWriter, guild GuildResponse) (guildID string, err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -224,14 +165,10 @@ func createToken(writer http.ResponseWriter, userInfo UserResponse, authInfo Aut
 	}
 	defer client.Close()
 
-	tokenKey, err := client.Put(ctx, datastore.IncompleteKey("Token", nil), &Token{
-		UserID:        userInfo.ID,
-		ExpiresAt:     time.Now().Unix() + int64(authInfo.ExpiresIn),
-		AccessToken:   authInfo.AccessToken,
-		RefreshToken:  authInfo.RefreshToken,
-		Username:      userInfo.Username,
-		Discriminator: userInfo.Discriminator,
-		Avatar:        userInfo.Avatar,
+	_, err = client.Put(ctx, datastore.NameKey("Guild", guild.Guild.ID, nil), &Token{
+		ExpiresAt:    time.Now().Unix() + int64(guild.ExpiresIn),
+		AccessToken:  guild.AccessToken,
+		RefreshToken: guild.RefreshToken,
 	})
 
 	if err != nil {
@@ -240,7 +177,7 @@ func createToken(writer http.ResponseWriter, userInfo UserResponse, authInfo Aut
 		return
 	}
 
-	token = tokenKey.ID
+	guildID = guild.Guild.ID
 
 	return
 

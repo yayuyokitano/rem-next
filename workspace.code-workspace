@@ -4,9 +4,6 @@
       "path": "."
     },
     {
-      "path": "authorize-discord"
-    },
-    {
       "path": "verify-user"
     },
     {
@@ -14,6 +11,18 @@
     },
     {
       "path": "guilds"
+    },
+    {
+      "path": "level"
+    },
+    {
+      "path": "interaction"
+    },
+    {
+      "path": "authorize-guild"
+    },
+    {
+      "path": "authorize-user"
     }
   ],
   "settings": {}
