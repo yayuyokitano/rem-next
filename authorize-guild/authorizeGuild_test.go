@@ -55,13 +55,12 @@ func TestAuthorizeGuild(t *testing.T) {
 		return
 	}
 
-	if tokenResponse.Token == "" {
+	if tokenResponse.GuildID == "" {
 		t.Error("Received empty token")
 	}
 
 	expected := TokenResponse{
 		GuildID: "719255152170762301",
-		Token:   tokenResponse.Token,
 	}
 
 	if !reflect.DeepEqual(tokenResponse, expected) {

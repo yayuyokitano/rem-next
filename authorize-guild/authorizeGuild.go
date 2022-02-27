@@ -45,7 +45,6 @@ type Token struct {
 
 type TokenResponse struct {
 	GuildID string `json:"guildID"`
-	Token   string `json:"token"`
 }
 
 func init() {
@@ -92,14 +91,13 @@ func authorizeGuild(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	guildID, err := createToken(writer, guild)
+	err = createToken(writer, guild)
 	if err != nil {
 		return
 	}
 
 	jsonResponse, err := json.Marshal(TokenResponse{
 		GuildID: guild.Guild.ID,
-		Token:   guildID,
 	})
 
 	if err != nil {
@@ -153,7 +151,7 @@ func getGuildInfo(writer http.ResponseWriter, code string) (auth GuildResponse, 
 	return
 }
 
-func createToken(writer http.ResponseWriter, guild GuildResponse) (guildID string, err error) {
+func createToken(writer http.ResponseWriter, guild GuildResponse) (err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -176,8 +174,6 @@ func createToken(writer http.ResponseWriter, guild GuildResponse) (guildID strin
 		fmt.Fprint(writer, "Failed to write token", err)
 		return
 	}
-
-	guildID = guild.Guild.ID
 
 	return
 
