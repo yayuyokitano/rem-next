@@ -23,6 +23,9 @@
     },
     {
       "path": "authorize-user"
+    },
+    {
+      "path": "verify-guild"
     }
   ],
   "settings": {}

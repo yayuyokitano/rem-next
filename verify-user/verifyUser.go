@@ -215,7 +215,6 @@ func updateToken(writer http.ResponseWriter, user User, tokenData Token, token i
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to write token", err)
-		return
 	}
 
 	return
@@ -256,7 +255,6 @@ func getUserInfo(writer http.ResponseWriter, accessToken string) (user User, err
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to get user info from discord")
 		err = errors.New("Failed to get user info from discord")
-		return
 	}
 
 	return
@@ -295,7 +293,6 @@ func refreshToken(writer http.ResponseWriter, refreshToken string) (auth Auth, e
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to get access token from discord")
 		err = errors.New("Failed to get access token from discord")
-		return
 	}
 
 	return

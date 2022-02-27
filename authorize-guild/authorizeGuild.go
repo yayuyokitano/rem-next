@@ -37,7 +37,6 @@ type GuildResponse struct {
 }
 
 type Token struct {
-	GuildID      string `datastore:"guildID"`
 	ExpiresAt    int64  `datastore:"expiresAt"`
 	AccessToken  string `datastore:"accessToken"`
 	RefreshToken string `datastore:"refreshToken"`
