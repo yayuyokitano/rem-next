@@ -60,7 +60,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 	rawBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, err)
+		fmt.Fprint(writer, "Failed to parse request body: ", err)
 		return
 	}
 
