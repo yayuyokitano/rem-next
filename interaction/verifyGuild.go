@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -78,12 +79,12 @@ func verifyGuild(guildID string) (tokenData Token, err error) {
 
 	}
 
-	guild, err := getGuildInfo(tokenData.AccessToken, guildID)
+	err = getGuildInfo(tokenData.AccessToken, guildID)
 	if err != nil {
 		return
 	}
 
-	err = updateToken(guild, tokenData, guildID)
+	err = updateToken(tokenData, guildID)
 	if err != nil {
 		return
 	}
@@ -97,7 +98,7 @@ func verifyGuild(guildID string) (tokenData Token, err error) {
 	return
 }
 
-func updateToken(user User, tokenData Token, guildID string) (err error) {
+func updateToken(tokenData Token, guildID string) (err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -117,7 +118,7 @@ func updateToken(user User, tokenData Token, guildID string) (err error) {
 
 }
 
-func getGuildInfo(accessToken string, guildID string) (user User, err error) {
+func getGuildInfo(accessToken string, guildID string) (err error) {
 
 	baseUri := os.Getenv("DISCORD_BASE_URI")
 
@@ -136,6 +137,14 @@ func getGuildInfo(accessToken string, guildID string) (user User, err error) {
 		return
 	}
 	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	bodyString := string(bodyBytes)
+	err = errors.New(bodyString)
+	return
 
 	var guild Guild
 	if err = json.NewDecoder(resp.Body).Decode(&guild); err != nil {

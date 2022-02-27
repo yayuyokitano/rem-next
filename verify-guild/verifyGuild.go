@@ -162,7 +162,7 @@ func updateToken(writer http.ResponseWriter, tokenData Token, guildID string) (e
 	}
 	defer client.Close()
 
-	_, err = client.Put(ctx, datastore.NameKey("Guild", guildID, nil), tokenData)
+	_, err = client.Put(ctx, datastore.NameKey("Guild", guildID, nil), &tokenData)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)

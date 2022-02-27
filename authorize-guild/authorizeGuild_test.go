@@ -38,7 +38,7 @@ func TestAuthorizeGuild(t *testing.T) {
 			"scope":         "guilds identify",
 			"token_type":    "Bearer",
 			"guild": map[string]interface{}{
-				"id": "719255152170762301",
+				"id": "868947570603491338",
 			},
 		})
 
@@ -60,7 +60,7 @@ func TestAuthorizeGuild(t *testing.T) {
 	}
 
 	expected := TokenResponse{
-		GuildID: "719255152170762301",
+		GuildID: "868947570603491338",
 	}
 
 	if !reflect.DeepEqual(tokenResponse, expected) {

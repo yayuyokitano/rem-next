@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	functions.HTTP("level", level)
+	functions.HTTP("interaction", interaction)
 }
 
 func contains(s []string, e string) bool {
@@ -36,7 +36,7 @@ func corsHandler(writer http.ResponseWriter, request *http.Request) {
 
 var pool *pgxpool.Pool
 
-func level(writer http.ResponseWriter, request *http.Request) {
+func interaction(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
 
@@ -72,55 +72,70 @@ type User struct {
 	UserID string `json:"userID"`
 }
 
-type UserPerms struct {
+type UserPerms []struct {
 	Permissions string `json:"permissions"`
 }
 
-func verifyUser(userID string, Token int64, guildID string) bool {
+func verifyUser(userID string, Token int64, guildID string) (err error) {
 
 	resp, err := http.Post(os.Getenv("GCP_BASE_URI")+"verify-user", "application/json", strings.NewReader(fmt.Sprintf(`{"userID":"%s","token":%d}`, userID, Token)))
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return false
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("verify-user returned status code %d", resp.StatusCode)
+		return
 	}
 	var user TokenResponse
 	err = json.NewDecoder(resp.Body).Decode(&user)
 	if err != nil {
-		return false
+		return
 	}
 	resp.Body.Close()
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/users/@me/guilds/%s/member", os.Getenv("DISCORD_BASE_URI"), guildID), nil)
+	guildIDInt, err := strconv.ParseInt(guildID, 10, 64)
 	if err != nil {
-		return false
+		return
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/users/@me/guilds?&after=%d&limit=1", os.Getenv("DISCORD_BASE_URI"), guildIDInt-1), nil)
+	if err != nil {
+		return
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", user.AccessToken))
 	client := &http.Client{}
 
 	resp, err = client.Do(req)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return false
+	if err != nil {
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("guild member returned status code %d", resp.StatusCode)
+		return
 	}
 
 	var userPerms UserPerms
 
 	err = json.NewDecoder(resp.Body).Decode(&userPerms)
 	if err != nil {
-		return false
+		return
 	}
 	resp.Body.Close()
 
 	Administrator := int64(8)
-	perms, err := strconv.ParseInt(userPerms.Permissions, 10, 64)
+	perms, err := strconv.ParseInt(userPerms[0].Permissions, 10, 64)
 	if err != nil {
-		return false
+		return
 	}
 
 	if perms&Administrator == 0 {
-		return false
+		err = fmt.Errorf("User does not have administrator permissions")
+		return
 	}
 
-	return true
+	return
 
 }
 
@@ -195,9 +210,9 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if !verifyUser(params.UserID, params.Token, params.GuildID) {
+	if err := verifyUser(params.UserID, params.Token, params.GuildID); err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions.")
+		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
 		return
 	}
 
@@ -205,7 +220,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Interaction does not exist.", err)
+		fmt.Fprint(writer, "Interaction does not exist: ", err)
 		return
 	}
 
@@ -241,7 +256,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 	token, err := verifyGuild(params.GuildID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to verify guild", err)
+		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
@@ -255,6 +270,8 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 		fmt.Fprint(writer, "Failed to send request", err)
 		return
 	}
+
+	fmt.Fprint(writer, resp.Body)
 
 	if resp.StatusCode != http.StatusCreated {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -299,16 +316,16 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if !verifyUser(params.UserID, params.Token, params.GuildID) {
+	if err := verifyUser(params.UserID, params.Token, params.GuildID); err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions.")
+		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
 		return
 	}
 
 	commandID, err := getInteraction(params.GuildID, params.Name)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Interaction does not exist.", err)
+		fmt.Fprint(writer, "Interaction does not exist: ", err)
 		return
 	}
 
@@ -324,7 +341,7 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 	token, err := verifyGuild(params.GuildID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to verify guild", err)
+		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
@@ -378,16 +395,16 @@ func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if !verifyUser(params.UserID, params.Token, params.GuildID) {
+	if err := verifyUser(params.UserID, params.Token, params.GuildID); err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions.")
+		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
 		return
 	}
 
 	commandID, err := getInteraction(params.GuildID, params.Name)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Interaction does not exist.", err)
+		fmt.Fprint(writer, "Interaction does not exist: ", err)
 		return
 	}
 
@@ -410,7 +427,7 @@ func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
 	token, err := verifyGuild(params.GuildID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to verify guild", err)
+		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
