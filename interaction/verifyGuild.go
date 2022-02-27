@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -79,11 +77,6 @@ func verifyGuild(guildID string) (tokenData Token, err error) {
 
 	}
 
-	err = getGuildInfo(tokenData.AccessToken, guildID)
-	if err != nil {
-		return
-	}
-
 	err = updateToken(tokenData, guildID)
 	if err != nil {
 		return
@@ -113,47 +106,6 @@ func updateToken(tokenData Token, guildID string) (err error) {
 		AccessToken:  tokenData.AccessToken,
 		RefreshToken: tokenData.RefreshToken,
 	})
-
-	return
-
-}
-
-func getGuildInfo(accessToken string, guildID string) (err error) {
-
-	baseUri := os.Getenv("DISCORD_BASE_URI")
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/guilds/%s", baseUri, guildID), nil)
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	bodyString := string(bodyBytes)
-	err = errors.New(bodyString)
-	return
-
-	var guild Guild
-	if err = json.NewDecoder(resp.Body).Decode(&guild); err != nil {
-		return
-	}
-
-	if guild.GuildID.ID == "" {
-		err = errors.New("Failed to get guild info from discord")
-	}
 
 	return
 

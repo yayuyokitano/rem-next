@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -169,7 +170,10 @@ func storeInteraction(commandDetails CommandDetails) (err error) {
 		return
 	}
 
-	_, err = pool.Exec(context.Background(), "INSERT INTO commands (commandID, guildID, commandName) VALUES ($1, $2, $3)", commandDetails.ID, commandDetails.GuildID, commandDetails.Name)
+	ctx := context.Background()
+	_, err = pool.Exec(ctx, "DELETE FROM commands WHERE commandID = $1", commandDetails.ID)
+	_, err = pool.Exec(ctx, "DELETE FROM commands WHERE guildID = $1 AND commandName = $2", commandDetails.GuildID, commandDetails.Name)
+	_, err = pool.Exec(ctx, "INSERT INTO commands (commandID, guildID, commandName) VALUES ($1, $2, $3)", commandDetails.ID, commandDetails.GuildID, commandDetails.Name)
 	return
 
 }
@@ -237,6 +241,9 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 	if !isPatch {
 		commandID = ""
 	}
+	if commandID != "" {
+		commandID = "/" + commandID
+	}
 	var requestMethod string
 	if isPatch {
 		requestMethod = "PATCH"
@@ -244,7 +251,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 		requestMethod = "POST"
 	}
 
-	interactionURL := fmt.Sprintf("%s/applications/%s/guilds/%s/commands/%s", os.Getenv("DISCORD_BASE_URI"), os.Getenv("DISCORD_CLIENT_ID"), params.GuildID, commandID)
+	interactionURL := fmt.Sprintf("%s/applications/%s/guilds/%s/commands%s", os.Getenv("DISCORD_BASE_URI"), os.Getenv("DISCORD_CLIENT_ID"), params.GuildID, commandID)
 
 	req, err := http.NewRequest(requestMethod, interactionURL, strings.NewReader(string(interactionJSON)))
 	if err != nil {
@@ -253,7 +260,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	token, err := verifyGuild(params.GuildID)
+	_, err = verifyGuild(params.GuildID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to verify guild: ", err)
@@ -261,7 +268,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bot %s", os.Getenv("DISCORD_TOKEN")))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -271,11 +278,10 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	fmt.Fprint(writer, resp.Body)
-
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to create interaction", err)
+		respBody, _ := io.ReadAll(resp.Body)
+		fmt.Fprint(writer, "Failed to create interaction", resp.StatusCode, string(respBody))
 		return
 	}
 
@@ -338,14 +344,15 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	token, err := verifyGuild(params.GuildID)
+	_, err = verifyGuild(params.GuildID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bot %s", os.Getenv("DISCORD_TOKEN")))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -356,7 +363,7 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 	}
 	if resp.StatusCode != http.StatusNoContent {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to delete interaction", err)
+		fmt.Fprint(writer, "Failed to delete interaction", resp.StatusCode, err)
 		return
 	}
 
@@ -424,14 +431,15 @@ func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	token, err := verifyGuild(params.GuildID)
+	_, err = verifyGuild(params.GuildID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bot %s", os.Getenv("DISCORD_TOKEN")))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

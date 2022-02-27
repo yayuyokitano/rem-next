@@ -26,6 +26,9 @@
     },
     {
       "path": "verify-guild"
+    },
+    {
+      "path": "interactions"
     }
   ],
   "settings": {}

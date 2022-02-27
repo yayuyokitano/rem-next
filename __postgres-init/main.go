@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 	defer conn.Close(ctx)
-	_, err = conn.Exec(ctx, "\\connect "+os.Getenv("DATABASE_NAME"))
+	_, err = conn.Exec(ctx, "\\c "+os.Getenv("DATABASE_NAME"))
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guilds(
 		guildID VARCHAR(18) PRIMARY KEY
 	)`)
@@ -31,7 +31,7 @@ func main() {
 		guildID VARCHAR(18) NOT NULL,
 		commandName VARCHAR(18) NOT NULL
 	)`)
-	_, err = conn.Exec(ctx, `CREATE INDEX command ON commands(guildID, commandName)`)
+	_, err = conn.Exec(ctx, `CREATE INDEX IF NOT EXISTS command ON commands(guildID, commandName)`)
 	if err != nil {
 		panic(err)
 	}
