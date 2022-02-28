@@ -1,6 +1,7 @@
 package reminteractions
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
@@ -86,11 +87,12 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if interaction.Type == 2 {
 		writer.WriteHeader(http.StatusOK)
+		fmt.Println(string(rawBody))
 		fmt.Fprint(writer, `{"type":5}`)
 		client := &http.Client{
 			Timeout: 1 * time.Nanosecond,
 		}
-		client.Post(os.Getenv("GCP_BASE_URI")+interaction.Name, "application/json", request.Body)
+		client.Post(os.Getenv("GCP_BASE_URI")+interaction.Name, "application/json", bytes.NewReader(rawBody))
 		return
 	}
 
