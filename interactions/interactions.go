@@ -10,10 +10,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"google.golang.org/api/idtoken"
 )
 
 func init() {
@@ -89,10 +89,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)
 		fmt.Println(string(rawBody))
 		fmt.Fprint(writer, `{"type":5}`)
-		client := &http.Client{
-			Timeout: 1 * time.Nanosecond,
-		}
-		client.Post(os.Getenv("GCP_BASE_URI")+interaction.Name, "application/json", bytes.NewReader(rawBody))
+		callInteraction(interaction.Name, rawBody)
 		return
 	}
 
@@ -103,6 +100,19 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+}
+
+func callInteraction(name string, b []byte) {
+	ctx := context.Background()
+	targetURL := os.Getenv("GCP_BASE_URI") + name
+
+	client, err := idtoken.NewClient(ctx, targetURL)
+	if err != nil {
+		fmt.Println(`{"message":"Failed to create client", "severity":"error"}`)
+		fmt.Println("Error creating client: ", err)
+		return
+	}
+	client.Post(targetURL, "application/json", bytes.NewReader(b))
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
