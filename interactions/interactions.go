@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -88,7 +89,6 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 	if interaction.Type == 2 {
 		writer.WriteHeader(http.StatusOK)
 		fmt.Println(string(rawBody))
-		fmt.Fprint(writer, `{"type":5}`)
 		callInteraction(interaction.Name, rawBody)
 		return
 	}
@@ -115,6 +115,13 @@ func callInteraction(name string, b []byte) {
 	resp, err := client.Post(targetURL, "application/json", bytes.NewReader(b))
 
 	fmt.Println(resp.StatusCode)
+	rawBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(`{"message":"Failed to read response body", "severity":"error"}`)
+		fmt.Println("Error reading response body: ", err)
+		return
+	}
+	fmt.Println(string(rawBody))
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
