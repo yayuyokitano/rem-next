@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -112,7 +113,16 @@ func callInteraction(name string, b []byte) {
 		fmt.Println("Error creating client: ", err)
 		return
 	}
-	client.Post(targetURL, "application/json", bytes.NewReader(b))
+	resp, err := client.Post(targetURL, "application/json", bytes.NewReader(b))
+	rawBody, _ := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(`{"message":"Failed to post to interaction", "severity":"error"}`)
+		fmt.Println(err)
+		fmt.Println(string(rawBody))
+		return
+	}
+	fmt.Println(`{"message":"Actually posted", "severity":"error"}`)
+	fmt.Println(string(rawBody))
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
