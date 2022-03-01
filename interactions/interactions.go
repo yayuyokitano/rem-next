@@ -112,10 +112,9 @@ func callInteraction(name string, b []byte) {
 		fmt.Println("Error creating client: ", err)
 		return
 	}
-	client.Post(targetURL, "application/json", bytes.NewReader(b))
+	resp, err := client.Post(targetURL, "application/json", bytes.NewReader(b))
 
-	fmt.Println(`{"message":"Actually posted", "severity":"error"}`)
-	fmt.Println(string(b))
+	fmt.Println(resp.StatusCode)
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
