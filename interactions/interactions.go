@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -81,8 +82,23 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if interaction.Type == 2 {
-		writer.WriteHeader(http.StatusOK)
-		fmt.Fprint(writer, `{"type":5}`)
+
+		client := http.Client{}
+		url := fmt.Sprintf("%s/interactions/%s/%s/callback", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
+		ackreq, err := http.NewRequest("POST", url, strings.NewReader(`{"type":5}`))
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+		}
+		ackresp, err := client.Do(ackreq)
+		ackRawBody, err := ioutil.ReadAll(ackresp.Body)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+		}
+		fmt.Println(ackRawBody)
+		ackresp.Body.Close()
+
 		res, err := remsponder.CallInteraction(interaction)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -91,8 +107,8 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		contentType, b, err := res.Prepare()
 		fmt.Println(string(b))
 
-		client := http.Client{}
-		url := fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
+		client = http.Client{}
+		url = fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
 		req, err := http.NewRequest("PATCH", url, bytes.NewReader(b))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
