@@ -1,20 +1,19 @@
 package reminteractions
 
 import (
-	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"google.golang.org/api/idtoken"
+	"github.com/yayuyokitano/kitaipu"
+	"github.com/yayuyokitano/remsponder"
 )
 
 func init() {
@@ -22,13 +21,6 @@ func init() {
 }
 
 var pool *pgxpool.Pool
-
-type Interaction struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Type  int    `json:"type"`
-	Token string `json:"token"`
-}
 
 func createPool() (err error) {
 	if pool == nil {
@@ -72,7 +64,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var interaction Interaction
+	var interaction kitaipu.Command
 
 	if err := json.Unmarshal(rawBody, &interaction); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -88,8 +80,13 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if interaction.Type == 2 {
 		writer.WriteHeader(http.StatusOK)
-		fmt.Println(string(rawBody))
-		callInteraction(interaction.Name, rawBody)
+		fmt.Fprint(writer, `{"type":5}`)
+		res, err := remsponder.CallInteraction(interaction)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(writer, err)
+		}
+		fmt.Fprint(writer, res)
 		return
 	}
 
@@ -100,28 +97,6 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-}
-
-func callInteraction(name string, b []byte) {
-	ctx := context.Background()
-	targetURL := os.Getenv("GCP_BASE_URI") + name
-
-	client, err := idtoken.NewClient(ctx, targetURL)
-	if err != nil {
-		fmt.Println(`{"message":"Failed to create client", "severity":"error"}`)
-		fmt.Println("Error creating client: ", err)
-		return
-	}
-	resp, err := client.Post(targetURL, "application/json", bytes.NewReader(b))
-
-	fmt.Println(resp.StatusCode)
-	rawBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(`{"message":"Failed to read response body", "severity":"error"}`)
-		fmt.Println("Error reading response body: ", err)
-		return
-	}
-	fmt.Println(string(rawBody))
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
