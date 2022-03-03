@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -88,21 +89,25 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 			fmt.Println(err)
 		}
 		contentType, b, err := res.Prepare()
+		fmt.Println(string(b))
 
 		client := http.Client{}
 		url := fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
-		req, err := http.NewRequest("POST", url, bytes.NewReader(b))
+		req, err := http.NewRequest("PATCH", url, bytes.NewReader(b))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Println(err)
 		}
 		req.Header.Set("Content-Type", contentType)
-		_, err = client.Do(req)
+		resp, err := client.Do(req)
+		rawBody, err := ioutil.ReadAll(resp.Body)
+		fmt.Println(string(rawBody))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Println(err)
 		}
-		fmt.Println(string(b))
+		writer.Header().Set("Content-Type", contentType)
+		fmt.Fprint(writer, string(b))
 		return
 	}
 
