@@ -84,9 +84,12 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		res, err := remsponder.CallInteraction(interaction)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(writer, err)
+			fmt.Println(err)
 		}
-		fmt.Fprint(writer, res)
+		contentType, b, err := res.Prepare()
+		fmt.Println(contentType)
+		fmt.Println(string(b))
+		fmt.Fprint(writer, b)
 		return
 	}
 
