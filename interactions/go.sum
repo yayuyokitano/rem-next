@@ -282,6 +282,8 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/yayuyokitano/kitaipu v0.0.0-20220303185045-4cd49fd9397d h1:mcJJm2pLJ+mYLC4/P6IlOMgVE3JGDczJm62xdwjE+eg=
 github.com/yayuyokitano/kitaipu v0.0.0-20220303185045-4cd49fd9397d/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
+github.com/yayuyokitano/remsponder v0.0.0-20220303210119-b9f4362349ba h1:4hyHO7v/CLSUOEORqee8jpWlXv1dEJo6QizqZJFmsdQ=
+github.com/yayuyokitano/remsponder v0.0.0-20220303210119-b9f4362349ba/go.mod h1:u+fwKXDZBuQ/iqOFj3D5EqFur4wqlplvxsHAwlyToA8=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

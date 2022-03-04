@@ -1,18 +1,21 @@
 package reminteractions
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/yayuyokitano/kitaipu"
+	"github.com/yayuyokitano/remsponder"
 )
 
 func init() {
@@ -79,51 +82,12 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if interaction.Type == 2 {
 
-		/*client := http.Client{}
-		url := fmt.Sprintf("%s/interactions/%s/%s/callback", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
-		ackreq, err := http.NewRequest("POST", url, strings.NewReader(`{"type":5}`))
-		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-		}
-		ackresp, err := client.Do(ackreq)
-		ackRawBody, err := ioutil.ReadAll(ackresp.Body)
-		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-		}
-		fmt.Println(ackRawBody)
-		ackresp.Body.Close()
-
-		res, err := remsponder.CallInteraction(interaction)
-		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-		}
-		contentType, b, err := res.Prepare()
-		fmt.Println(string(b))
-
-		client = http.Client{}
-		url = fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
-		req, err := http.NewRequest("PATCH", url, bytes.NewReader(b))
-		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-		}
-		req.Header.Set("Content-Type", contentType)
-		resp, err := client.Do(req)
-		rawBody, err := ioutil.ReadAll(resp.Body)
-		fmt.Println(string(rawBody))
-		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-		}
-		writer.Header().Set("Content-Type", contentType)
-		fmt.Fprint(writer, string(b))*/
-
 		fmt.Fprint(writer, `{"type":5}`)
+		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
+		go executeFunction(writer, request, interaction)
 		return
+
 	}
 
 	err = createPool()
@@ -133,6 +97,32 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+}
+
+func executeFunction(writer http.ResponseWriter, request *http.Request, interaction kitaipu.Command) {
+	res, err := remsponder.CallInteraction(interaction)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	contentType, b, err := res.Prepare()
+
+	client := http.Client{}
+	url := fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
+	req, err := http.NewRequest("PATCH", url, bytes.NewReader(b))
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	req.Header.Set("Content-Type", contentType)
+	resp, err := client.Do(req)
+	rawBody, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(rawBody))
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	return
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
