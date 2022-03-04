@@ -1,22 +1,18 @@
 package reminteractions
 
 import (
-	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/yayuyokitano/kitaipu"
-	"github.com/yayuyokitano/remsponder"
 )
 
 func init() {
@@ -83,7 +79,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if interaction.Type == 2 {
 
-		client := http.Client{}
+		/*client := http.Client{}
 		url := fmt.Sprintf("%s/interactions/%s/%s/callback", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
 		ackreq, err := http.NewRequest("POST", url, strings.NewReader(`{"type":5}`))
 		if err != nil {
@@ -123,7 +119,10 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 			fmt.Println(err)
 		}
 		writer.Header().Set("Content-Type", contentType)
-		fmt.Fprint(writer, string(b))
+		fmt.Fprint(writer, string(b))*/
+
+		fmt.Fprint(writer, `{"type":5}`)
+		writer.WriteHeader(http.StatusOK)
 		return
 	}
 
