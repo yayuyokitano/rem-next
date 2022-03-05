@@ -3,7 +3,7 @@ set -e
 changeall=0
 declare -A changes
 while read p; do
-  changes["${p%%:*}"]=1
+  changes[${p%%/*}]=1
   if [[ $p != */* ]];then
     changeall=1
     break
@@ -17,7 +17,7 @@ done < config.ini
 
 for d in */ ; do
   [[ $d == _* ]] && continue 
-  [[ ${changes[$d]} != 1 ]] && [[ $changeall != 1 ]] && continue
+  [[ ${changes[${d%/}]} != 1 ]] && [[ $changeall != 1 ]] && continue
   cd "${d%/}"
 
   envList=""
