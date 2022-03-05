@@ -1,7 +1,7 @@
 {
   "steps": [
     {
-      "name": "alpine/git",
+      "name": "gcr.io/$PROJECT_ID/git",
       "entrypoint": "/bin/bash",
       "args": ["git diff --name-only $COMMIT_SHA > /workspace/git-diff.txt"]
     },
