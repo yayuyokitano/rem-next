@@ -10,7 +10,7 @@ while read p; do
   echo p
   echo ${p%%/*}
   changes[${p%%/*}]=1
-done < git-diff.txt
+done < /workspace/git-diff.txt
 
 while read p; do
   IFS=' = ' read -r -a envArray <<< "$p"
