@@ -4,7 +4,7 @@ changeall=false
 declare -A changes
 while read p; do
   changes["${p%%:*}"]=true
-  if [[ $p == *"/"*]]; then
+  if [[ $p == *"/"*]] then
     changeall=true
     break
   fi
