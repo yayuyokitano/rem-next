@@ -10,7 +10,7 @@ require (
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/yayuyokitano/kitaipu v0.0.0-20220305072638-a58ba5e86008
+	github.com/yayuyokitano/kitaipu v0.0.0-20220305151414-a090c9c0299f
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect

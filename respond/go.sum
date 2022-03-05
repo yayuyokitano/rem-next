@@ -286,10 +286,14 @@ github.com/yayuyokitano/kitaipu v0.0.0-20220305064536-f541788b30eb h1:7e8guHoP0M
 github.com/yayuyokitano/kitaipu v0.0.0-20220305064536-f541788b30eb/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
 github.com/yayuyokitano/kitaipu v0.0.0-20220305072638-a58ba5e86008 h1:/vMxojPdNHzz84Y5png7oqNF5TyR+hUN2El6d3FO7xk=
 github.com/yayuyokitano/kitaipu v0.0.0-20220305072638-a58ba5e86008/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
+github.com/yayuyokitano/kitaipu v0.0.0-20220305151414-a090c9c0299f h1:bTneXEk0LrnOvzHuS+F9WGyJ4Q/qN8vVJSufGb5Q+A0=
+github.com/yayuyokitano/kitaipu v0.0.0-20220305151414-a090c9c0299f/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
 github.com/yayuyokitano/remsponder v0.0.0-20220305044143-d8e064455696 h1:7pJ8SLOqn5fNkUBLoGiOHs9F7BX1tRFqdE2d+wzjiEE=
 github.com/yayuyokitano/remsponder v0.0.0-20220305044143-d8e064455696/go.mod h1:8Lgm8LFiqz97X+gkMomwEVcQxw47bf97UMsguitrjMo=
 github.com/yayuyokitano/remsponder v0.0.0-20220305064637-efcf6f0e6995 h1:zObTfWGogHK6btfyYS3z1wRJQSFA5HRG9J5Zi5k+9YI=
 github.com/yayuyokitano/remsponder v0.0.0-20220305064637-efcf6f0e6995/go.mod h1:pQXlwpCmNrgwkVQIYAm6Sv2wNzxookf7rnmOXkc98V8=
+github.com/yayuyokitano/remsponder v0.0.0-20220305152219-9ab99254d78a h1:Jqw5+NaLb/9FmEIp1hV/vObeU+FYN1gkyaQLcab2/Wg=
+github.com/yayuyokitano/remsponder v0.0.0-20220305152219-9ab99254d78a/go.mod h1:pU1sFIdt1aOzwYNAIzAgQwbjsSh6favm/iRkqTeLaXc=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
