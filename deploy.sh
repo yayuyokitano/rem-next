@@ -1,11 +1,11 @@
 set -e
 
-changeall=false
+changeall=0
 declare -A changes
 while read p; do
-  changes["${p%%:*}"]=true
+  changes["${p%%:*}"]=1
   if [[ $p != */* ]];then
-    changeall=true
+    changeall=1
     break
   fi
 done < git-diff.txt
@@ -17,8 +17,7 @@ done < config.ini
 
 for d in */ ; do
   [[ $d == _* ]] && continue 
-  [[ ${changes[$d]} == true ]] && continue
-  [[ $changeall == true ]] && continue
+  [[ ${changes[$d]} != 1 ]] && [[ $changeall != 1 ]] && continue
   cd "${d%/}"
 
   envList=""
