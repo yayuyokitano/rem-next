@@ -7,6 +7,8 @@ while read p; do
     changeall=1
     break
   fi
+  echo p
+  echo ${p%%/*}
   changes[${p%%/*}]=1
 done < git-diff.txt
 
@@ -17,6 +19,9 @@ done < config.ini
 
 for d in */ ; do
   [[ $d == _* ]] && continue 
+  echo d
+  echo ${d%/}
+  echo ${changes[${d%/}]}
   ([[ ${changes[${d%/}]} != 1 || $changeall != 1 ]]) && continue
   cd "${d%/}"
 
