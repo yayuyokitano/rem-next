@@ -2,6 +2,7 @@ set -e
 
 changeall=0
 declare -A changes
+echo $(ls /workspace)
 while read p; do
   if [[ $p != */* ]];then
     changeall=1
