@@ -5,7 +5,9 @@
       "args": [
         "diff",
         "--name-only",
-        "$COMMIT_SHA > /workspace/git-diff.txt"
+        "$COMMIT_SHA",
+        ">",
+        "/workspace/git-diff.txt"
       ]
     },
     {
