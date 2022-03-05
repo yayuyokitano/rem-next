@@ -144,7 +144,7 @@ func confirmUser(writer http.ResponseWriter, token int64, userID string) (tokenD
 		return
 	}
 
-	// Refresh token if expired, else just fetch updated user data.
+	// Refresh token if expired, else just fetch updated user data
 
 	if tokenData.ExpiresAt < time.Now().Unix() {
 
