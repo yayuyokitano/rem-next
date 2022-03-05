@@ -26,6 +26,9 @@
     },
     {
       "path": "interactions"
+    },
+    {
+      "path": "respond"
     }
   ],
   "settings": {}

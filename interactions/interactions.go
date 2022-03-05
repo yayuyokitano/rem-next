@@ -8,15 +8,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/yayuyokitano/kitaipu"
-	"github.com/yayuyokitano/remsponder"
 )
+
+type VerifiedInteraction struct {
+	Interaction kitaipu.Command `json:"interaction"`
+	Token       string          `json:"token"`
+}
 
 func init() {
 	functions.HTTP("interactions", interactions)
@@ -82,9 +85,21 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if interaction.Type == 2 {
 
+		verifiedInteraction := VerifiedInteraction{
+			Interaction: interaction,
+			Token:       os.Getenv("DISCORD_SECRET"),
+		}
+
+		jsonPayload, err := json.Marshal(verifiedInteraction)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(writer, "Failed to encode request body", err)
+			return
+		}
+
+		go http.Post(os.Getenv("GCP_BASE_URI")+"respond", "application/json", bytes.NewBuffer(jsonPayload))
 		writer.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(writer, `{"type":5}`)
-		go executeFunction(writer, request, interaction)
 		return
 
 	}
@@ -96,32 +111,6 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-}
-
-func executeFunction(writer http.ResponseWriter, request *http.Request, interaction kitaipu.Command) {
-	res, err := remsponder.CallInteraction(interaction)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	contentType, b, err := res.Prepare()
-
-	client := http.Client{}
-	url := fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
-	req, err := http.NewRequest("PATCH", url, bytes.NewReader(b))
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	req.Header.Set("Content-Type", contentType)
-	resp, err := client.Do(req)
-	rawBody, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(rawBody))
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err)
-	}
-	return
 }
 
 func verifySignature(publicKey []byte, rawBody []byte, signature []byte, timestamp string) bool {
