@@ -282,8 +282,12 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/yayuyokitano/kitaipu v0.0.0-20220305043952-d9ef4d4bd5de h1:3M66Zp1y6xjnREpoCp9w4rv9roBdhhheq98b/VnDjv8=
 github.com/yayuyokitano/kitaipu v0.0.0-20220305043952-d9ef4d4bd5de/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
+github.com/yayuyokitano/kitaipu v0.0.0-20220305064536-f541788b30eb h1:7e8guHoP0M8pIBiqsFMzVxU5PDdhx4zjb0uUWqIEL4k=
+github.com/yayuyokitano/kitaipu v0.0.0-20220305064536-f541788b30eb/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
 github.com/yayuyokitano/remsponder v0.0.0-20220305044143-d8e064455696 h1:7pJ8SLOqn5fNkUBLoGiOHs9F7BX1tRFqdE2d+wzjiEE=
 github.com/yayuyokitano/remsponder v0.0.0-20220305044143-d8e064455696/go.mod h1:8Lgm8LFiqz97X+gkMomwEVcQxw47bf97UMsguitrjMo=
+github.com/yayuyokitano/remsponder v0.0.0-20220305064637-efcf6f0e6995 h1:zObTfWGogHK6btfyYS3z1wRJQSFA5HRG9J5Zi5k+9YI=
+github.com/yayuyokitano/remsponder v0.0.0-20220305064637-efcf6f0e6995/go.mod h1:pQXlwpCmNrgwkVQIYAm6Sv2wNzxookf7rnmOXkc98V8=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
