@@ -1,6 +1,16 @@
 {
   "steps": [
     {
+      "name": "alpine/git",
+      "args": [
+        "git",
+        "diff",
+        "--name-only",
+        "$COMMIT_SHA",
+        "> /workspace/git-diff.txt"
+      ]
+    },
+    {
       "name": "golang",
       "args": [
         "bash", "testcloud.sh"
