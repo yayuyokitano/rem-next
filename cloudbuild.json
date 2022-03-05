@@ -3,7 +3,7 @@
     {
       "name": "gcr.io/cloud-builders/git",
       "entrypoint": "/bin/bash",
-      "args": ["git diff --name-only $COMMIT_SHA > /workspace/git-diff.txt"]
+      "args": ["-c", "git diff --name-only $COMMIT_SHA > /workspace/git-diff.txt"]
     },
     {
       "name": "golang",
