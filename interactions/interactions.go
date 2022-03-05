@@ -82,9 +82,8 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if interaction.Type == 2 {
 
-		fmt.Fprint(writer, `{"type":5}`)
 		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
+		fmt.Fprint(writer, `{"type":5}`)
 		go executeFunction(writer, request, interaction)
 		return
 
