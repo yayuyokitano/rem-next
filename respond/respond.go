@@ -57,6 +57,7 @@ func respond(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(err)
 	}
 	contentType, b, err := res.Prepare()
+	fmt.Println(string(b))
 
 	client := http.Client{}
 	url := fmt.Sprintf("%s/webhooks/%s/%s/messages/@original", os.Getenv("DISCORD_BASE_URI"), interaction.ApplicationID, interaction.Token)
