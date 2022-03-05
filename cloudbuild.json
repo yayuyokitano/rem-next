@@ -2,14 +2,8 @@
   "steps": [
     {
       "name": "alpine/git",
-      "args": [
-        "diff",
-        "--name-only",
-        "$COMMIT_SHA",
-        "--",
-        ">",
-        "/workspace/git-diff.txt"
-      ]
+      "entrypoint": "/bin/bash",
+      "args": ["git diff --name-only $COMMIT_SHA > /workspace/git-diff.txt"]
     },
     {
       "name": "golang",
