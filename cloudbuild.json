@@ -3,7 +3,6 @@
     {
       "name": "alpine/git",
       "args": [
-        "git",
         "diff",
         "--name-only",
         "$COMMIT_SHA",
