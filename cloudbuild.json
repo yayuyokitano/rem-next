@@ -2,8 +2,12 @@
   "steps": [
     {
       "name": "gcr.io/cloud-builders/git",
+      "args": ["fetch", "--unshallow"]
+    },
+    {
+      "name": "gcr.io/cloud-builders/git",
       "entrypoint": "/bin/bash",
-      "args": ["-c", "git remote -v"]
+      "args": ["-c", "git diff --name-only $COMMIT_SHA~1 -- > /workspace/git-diff.txt"]
     },
     {
       "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
