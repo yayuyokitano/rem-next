@@ -3,7 +3,7 @@
     {
       "name": "gcr.io/cloud-builders/git",
       "entrypoint": "/bin/bash",
-      "args": ["-c", "git diff --name-only @{1} -- > /workspace/git-diff.txt"]
+      "args": ["-c", "git diff --name-only main@{1} -- > /workspace/git-diff.txt"]
     },
     {
       "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
