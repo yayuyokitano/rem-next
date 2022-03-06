@@ -7,15 +7,14 @@ while read p; do
   export ${envArray[0]}
 done < config.ini
 
+while read p; do
+  declare "$p=$(gcloud secrets versions access latest --secret $p)"
+  export $p
+done < secretenv.txt
+
 for d in */ ; do
   [[ $d == __* ]] && continue
   cd "${d%/}"
-
-  #get secrets for tests
-  while read p; do
-    declare "${p}=$(gcloud secrets versions access latest --secret ${p})"
-    export ${p}
-  done < secretenv.txt
 
   go test
   cd ../

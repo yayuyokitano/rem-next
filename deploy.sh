@@ -12,7 +12,7 @@ done < /workspace/git-diff.txt
 
 env=""
 while read p; do
-  env+="${p}=$(gcloud secrets versions access latest --secret "${p}"),"
+  env+="$p=$(gcloud secrets versions access latest --secret "$p"),"
 done < secretenv.txt
 
 while read p; do
