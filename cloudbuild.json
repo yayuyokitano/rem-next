@@ -3,7 +3,7 @@
     {
       "name": "gcr.io/cloud-builders/git",
       "entrypoint": "/bin/bash",
-      "args": ["-c", "echo git remote -v"]
+      "args": ["-c", "git remote -v"]
     },
     {
       "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
