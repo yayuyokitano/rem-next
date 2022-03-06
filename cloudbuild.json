@@ -6,18 +6,6 @@
       "args": ["-c", "git diff --name-only $COMMIT_SHA > /workspace/git-diff.txt"]
     },
     {
-      "name": "golang",
-      "args": [
-        "bash", "testcloud.sh"
-      ],
-      "secretEnv": [
-        "DISCORD_SECRET",
-        "DATABASE_PRIVATE_URL",
-        "DISCORD_TOKEN",
-        "REM_TEST_TOKEN"
-      ]
-    },
-    {
       "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
       "args": [
         "bash", "deploy.sh"

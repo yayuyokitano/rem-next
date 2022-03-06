@@ -2,7 +2,8 @@ set -e
 
 changeall=0
 declare -A changes
-echo $(ls /workspace)
+ls /workspace
+cat /workspace/git-diff.txt
 while read p; do
   if [[ $p != */* ]];then
     changeall=1
