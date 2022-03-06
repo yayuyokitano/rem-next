@@ -171,7 +171,7 @@ func getGuildList(writer http.ResponseWriter, token int64, userID string) (guild
 
 	guilds, err = attemptFetchGuild(tokenData.AccessToken, tokenData.UserID)
 
-	//try to refresh token and try again, if doesnt work then give up
+	//try to refresh token and try again, if doesnt work then give up.
 	if err != nil {
 		var auth Auth
 		auth, err = refreshToken(tokenData.RefreshToken)
