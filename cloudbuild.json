@@ -12,23 +12,5 @@
       ]
     }
   ],
-  "availableSecrets": {
-    "secretManager": [{
-      "versionName": "projects/rem-970606/secrets/DISCORD_SECRET/versions/latest",
-      "env": "DISCORD_SECRET"
-    },
-    {
-      "versionName": "projects/rem-970606/secrets/DATABASE_CLOUD_URL/versions/latest",
-      "env": "DATABASE_PRIVATE_URL"
-    },
-    {
-      "versionName": "projects/rem-970606/secrets/DISCORD_TOKEN/versions/latest",
-      "env": "DISCORD_TOKEN"
-    },
-    {
-      "versionName": "projects/rem-970606/secrets/REM_TEST_TOKEN/versions/latest",
-      "env": "REM_TEST_TOKEN"
-    }]
-  },
   "timeout": "60000s"
 }
