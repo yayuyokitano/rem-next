@@ -1,13 +1,13 @@
 package reminteraction
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -77,69 +77,6 @@ type UserPerms []struct {
 	Permissions string `json:"permissions"`
 }
 
-func verifyUser(userID string, Token int64, guildID string) (err error) {
-
-	resp, err := http.Post(os.Getenv("GCP_BASE_URI")+"verify-user", "application/json", strings.NewReader(fmt.Sprintf(`{"userID":"%s","token":%d}`, userID, Token)))
-	if err != nil {
-		return
-	}
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("verify-user returned status code %d", resp.StatusCode)
-		return
-	}
-	var user TokenResponse
-	err = json.NewDecoder(resp.Body).Decode(&user)
-	if err != nil {
-		return
-	}
-	resp.Body.Close()
-
-	guildIDInt, err := strconv.ParseInt(guildID, 10, 64)
-	if err != nil {
-		return
-	}
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/users/@me/guilds?&after=%d&limit=1", os.Getenv("DISCORD_BASE_URI"), guildIDInt-1), nil)
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", user.AccessToken))
-	client := &http.Client{}
-
-	resp, err = client.Do(req)
-	if err != nil {
-		return
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("guild member returned status code %d", resp.StatusCode)
-		return
-	}
-
-	var userPerms UserPerms
-
-	err = json.NewDecoder(resp.Body).Decode(&userPerms)
-	if err != nil {
-		return
-	}
-	resp.Body.Close()
-
-	Administrator := int64(8)
-	perms, err := strconv.ParseInt(userPerms[0].Permissions, 10, 64)
-	if err != nil {
-		return
-	}
-
-	if perms&Administrator == 0 {
-		err = fmt.Errorf("User does not have administrator permissions")
-		return
-	}
-
-	return
-
-}
-
 type InteractionParams struct {
 	Name              string `json:"name"`
 	DefaultPermission bool   `json:"defaultPermission"`
@@ -199,6 +136,12 @@ func deleteInteraction(commandID string) (err error) {
 	return
 }
 
+type ConfirmPermissionParams struct {
+	UserID  string `json:"userID"`
+	Token   int64  `json:"token"`
+	GuildID string `json:"guildID"`
+}
+
 func addInteraction(writer http.ResponseWriter, request *http.Request) {
 
 	var params InteractionParams
@@ -214,7 +157,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err := verifyUser(params.UserID, params.Token, params.GuildID); err != nil {
+	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
 		return
@@ -257,13 +200,6 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to create request", err)
-		return
-	}
-
-	_, err = verifyGuild(params.GuildID)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
@@ -322,7 +258,7 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err := verifyUser(params.UserID, params.Token, params.GuildID); err != nil {
+	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
 		return
@@ -341,13 +277,6 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to create request", err)
-		return
-	}
-
-	_, err = verifyGuild(params.GuildID)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to verify guild: ", err)
 		return
 	}
 
@@ -402,7 +331,7 @@ func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err := verifyUser(params.UserID, params.Token, params.GuildID); err != nil {
+	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
 		return
@@ -431,13 +360,6 @@ func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, err = verifyGuild(params.GuildID)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to verify guild: ", err)
-		return
-	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bot %s", os.Getenv("DISCORD_TOKEN")))
 
@@ -457,4 +379,29 @@ func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	fmt.Fprint(writer, "Successfully modified permissions of interaction.")
 
+}
+
+func confirmPermissions(userID string, token int64, guildID string) (err error) {
+	b, err := json.Marshal(ConfirmPermissionParams{
+		UserID:  userID,
+		Token:   token,
+		GuildID: guildID,
+	})
+	if err != nil {
+		return
+	}
+
+	req, err := http.NewRequest("POST", os.Getenv("GCP_BASE_URI")+"confirm-permission", bytes.NewReader(b))
+	if err != nil {
+		return
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("Failed to confirm permissions: %s", resp.Status)
+	}
+	return
 }

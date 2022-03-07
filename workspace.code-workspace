@@ -29,6 +29,9 @@
     },
     {
       "path": "respond"
+    },
+    {
+      "path": "confirm-permission"
     }
   ],
   "settings": {}
