@@ -12,7 +12,7 @@ import (
 
 func TestInteractions(t *testing.T) {
 
-	params := fmt.Sprintf(`{"name":"level", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	params := fmt.Sprintf(`{"name":"test", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer := httptest.NewRecorder()
 	request := httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
 
@@ -22,7 +22,7 @@ func TestInteractions(t *testing.T) {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
 	}
 
-	commandID, err := getInteraction(os.Getenv("REM_TEST_GUILDID"), "level")
+	commandID, err := getInteraction(os.Getenv("REM_TEST_GUILDID"), "test")
 	if err != nil {
 		t.Errorf("Failed to get interaction: %s\n", err)
 	}
@@ -42,12 +42,12 @@ func TestInteractions(t *testing.T) {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
 	}
 
-	commandID, err = getInteraction(os.Getenv("REM_TEST_GUILDID"), "level")
+	commandID, err = getInteraction(os.Getenv("REM_TEST_GUILDID"), "test")
 	if err == nil {
 		t.Errorf("Expected error, got none")
 	}
 
-	paramsLackingPermissions := fmt.Sprintf(`{"name":"level", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), "267794154459889664", os.Getenv("REM_TEST_TOKEN"))
+	paramsLackingPermissions := fmt.Sprintf(`{"name":"test", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), "267794154459889664", os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(paramsLackingPermissions))
 
@@ -59,7 +59,7 @@ func TestInteractions(t *testing.T) {
 
 	time.Sleep(5 * time.Second) //don't get rate limited
 
-	params = fmt.Sprintf(`{"name":"level", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	params = fmt.Sprintf(`{"name":"test", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
 
@@ -69,7 +69,7 @@ func TestInteractions(t *testing.T) {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
 	}
 
-	commandID, err = getInteraction(os.Getenv("REM_TEST_GUILDID"), "level")
+	commandID, err = getInteraction(os.Getenv("REM_TEST_GUILDID"), "test")
 	if err != nil {
 		t.Errorf("Failed to get interaction: %s\n", err)
 	}

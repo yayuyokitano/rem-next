@@ -102,7 +102,12 @@ var interactions = map[string]interactionStructure{
 				},
 			},
 		},
-		Type: 1,
+		Type: iChatInput,
+	},
+	"test": {
+		Description: "Test interaction.",
+		Options:     []Option{},
+		Type:        iChatInput,
 	},
 }
 

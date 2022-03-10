@@ -36,6 +36,16 @@ func main() {
 		panic(err)
 	}
 
+	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guildXP(
+		guildID VARCHAR(18) NOT NULL,
+		userID VARCHAR(18) NOT NULL,
+		xp BIGINT NOT NULL
+	)`)
+	_, err = conn.Exec(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS xplookup ON guildXP(guildID, userID)`)
+	if err != nil {
+		panic(err)
+	}
+
 	var res []struct {
 		Schemaname  string
 		Tablename   string
