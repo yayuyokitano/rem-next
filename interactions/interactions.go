@@ -74,6 +74,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 	if err := json.Unmarshal(rawBody, &interaction); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Print("Failed to decode request body", err)
+		fmt.Print(string(rawBody))
 		return
 	}
 
