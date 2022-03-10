@@ -59,13 +59,13 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 	rawBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to parse request body: ", err)
+		fmt.Print("Failed to parse request body: ", err)
 		return
 	}
 
 	if !verifySignature(publicKey, rawBody, signature, timestamp) {
 		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid request signature")
+		fmt.Print("Invalid request signature")
 		return
 	}
 
@@ -73,7 +73,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 
 	if err := json.Unmarshal(rawBody, &interaction); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to decode request body", err)
+		fmt.Print("Failed to decode request body", err)
 		return
 	}
 
@@ -93,7 +93,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 		jsonPayload, err := json.Marshal(verifiedInteraction)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(writer, "Failed to encode request body", err)
+			fmt.Print("Failed to encode request body", err)
 			return
 		}
 
@@ -107,7 +107,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 	err = createPool()
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Error creating pool: ", err)
+		fmt.Print("Error creating pool: ", err)
 		return
 	}
 
