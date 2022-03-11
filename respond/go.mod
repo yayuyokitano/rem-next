@@ -11,7 +11,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/yayuyokitano/kitaipu v0.0.0-20220311164712-dd8f068bf3b3
-	github.com/yayuyokitano/remsponder v0.0.0-20220311165030-8424e03fcecb
+	github.com/yayuyokitano/remsponder v0.0.0-20220311173058-36c6f7de1356
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect

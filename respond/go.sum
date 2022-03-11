@@ -302,6 +302,8 @@ github.com/yayuyokitano/remsponder v0.0.0-20220310212954-dda31b225dfc h1:J62twq4
 github.com/yayuyokitano/remsponder v0.0.0-20220310212954-dda31b225dfc/go.mod h1:x3HU80OEQkUaj+paYEuprZFE7bdxHty2lq0UlGLTNas=
 github.com/yayuyokitano/remsponder v0.0.0-20220311165030-8424e03fcecb h1:UZlfMWBO1L0T+qpYt2vHxxB6C4GnoaIG/QfU+OZGxIo=
 github.com/yayuyokitano/remsponder v0.0.0-20220311165030-8424e03fcecb/go.mod h1:fjDhPKgRbGJxHrCnVrla/Qxjrb7pGuTGLdc8yVkO0cw=
+github.com/yayuyokitano/remsponder v0.0.0-20220311173058-36c6f7de1356 h1:7CiclnPCb+Ow92bkXr21SNfIg33Z0DPkiFBIo6MmbY4=
+github.com/yayuyokitano/remsponder v0.0.0-20220311173058-36c6f7de1356/go.mod h1:fjDhPKgRbGJxHrCnVrla/Qxjrb7pGuTGLdc8yVkO0cw=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
