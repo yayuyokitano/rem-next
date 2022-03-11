@@ -98,7 +98,7 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		go http.Post(os.Getenv("GCP_BASE_URI")+"respond", "application/json", bytes.NewBuffer(jsonPayload))
+		http.Post(os.Getenv("GCP_BASE_URI")+"respond", "application/json", bytes.NewBuffer(jsonPayload))
 		writer.Header().Set("Content-Type", "application/json")
 		fmt.Print(string(rawBody))
 		fmt.Fprint(writer, `{"type":5}`)
