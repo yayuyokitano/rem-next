@@ -294,6 +294,8 @@ github.com/yayuyokitano/kitaipu v0.0.0-20220310185046-9c9927b1e6b4 h1:gS+L/XTxyF
 github.com/yayuyokitano/kitaipu v0.0.0-20220310185046-9c9927b1e6b4/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
 github.com/yayuyokitano/kitaipu v0.0.0-20220310222425-cda32724767c h1:GOZHn8tzuCFoTmqijh2y3VTMUFtVhGE+0IXlEM1uWAs=
 github.com/yayuyokitano/kitaipu v0.0.0-20220310222425-cda32724767c/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
+github.com/yayuyokitano/kitaipu v0.0.0-20220311164712-dd8f068bf3b3 h1:xrZrZB6FRRm+jZBNYzxzsmNt2KmavS9eWXZzACfamCc=
+github.com/yayuyokitano/kitaipu v0.0.0-20220311164712-dd8f068bf3b3/go.mod h1:lEw6ZwSV4VXdMsYmqEIhWWUqZWbAnTfkBwnHVY4bnb0=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
