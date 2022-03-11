@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -99,9 +100,12 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		client := http.Client{
-			Timeout: 1 * time.Millisecond,
+		transport := &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout: 1 * time.Millisecond,
+			}).DialContext,
 		}
+		client := http.Client{Transport: transport}
 		_, _ = client.Post(os.Getenv("GCP_BASE_URI")+"respond", "application/json", bytes.NewBuffer(jsonPayload))
 		writer.Header().Set("Content-Type", "application/json")
 		fmt.Print(string(rawBody))
