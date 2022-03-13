@@ -22,6 +22,8 @@ var client *pubsub.Client
 func init() {
 	var err error
 
+	functions.HTTP("interactions", interactions)
+
 	client, err = pubsub.NewClient(context.Background(), os.Getenv("GCP_PROJECT_ID"))
 	if err != nil {
 		log.Fatalf("pubsub.NewClient: %v", err)
@@ -36,10 +38,6 @@ type publishRequest struct {
 type VerifiedInteraction struct {
 	Interaction kitaipu.Command `json:"interaction"`
 	Token       string          `json:"token"`
-}
-
-func init() {
-	functions.HTTP("interactions", interactions)
 }
 
 var pool *pgxpool.Pool
