@@ -28,9 +28,6 @@
       "path": "interactions"
     },
     {
-      "path": "respond"
-    },
-    {
       "path": "confirm-permission"
     }
   ],

@@ -1,22 +1,37 @@
 package reminteractions
 
 import (
-	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
+	"log"
 	"net/http"
 	"os"
-	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/yayuyokitano/kitaipu"
 )
+
+var client *pubsub.Client
+
+func init() {
+	var err error
+
+	client, err = pubsub.NewClient(context.Background(), os.Getenv("GCP_PROJECT_ID"))
+	if err != nil {
+		log.Fatalf("pubsub.NewClient: %v", err)
+	}
+}
+
+type publishRequest struct {
+	Topic   string `json:"topic"`
+	Message string `json:"message"`
+}
 
 type VerifiedInteraction struct {
 	Interaction kitaipu.Command `json:"interaction"`
@@ -100,13 +115,22 @@ func interactions(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		transport := &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout: 1 * time.Millisecond,
-			}).DialContext,
+		p := publishRequest{
+			Topic:   "responder",
+			Message: string(jsonPayload),
 		}
-		client := http.Client{Transport: transport}
-		_, _ = client.Post(os.Getenv("GCP_BASE_URI")+"respond", "application/json", bytes.NewBuffer(jsonPayload))
+
+		m := &pubsub.Message{
+			Data: []byte(p.Message),
+		}
+
+		_, err = client.Topic(p.Topic).Publish(request.Context(), m).Get(request.Context())
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Print("Failed to publish message", err)
+			return
+		}
+
 		writer.Header().Set("Content-Type", "application/json")
 		fmt.Print(string(rawBody))
 		fmt.Fprint(writer, `{"type":5}`)
