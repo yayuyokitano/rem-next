@@ -4,6 +4,9 @@ changeall=0
 declare -A changes
 while read p; do
   if [[ $p != */* ]];then
+    if [[ $p != secretenv.txt && $p != config.ini ]];then
+      continue
+    fi
     changeall=1
     break
   fi
