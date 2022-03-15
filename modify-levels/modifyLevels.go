@@ -118,6 +118,11 @@ func modifyLevels(writer http.ResponseWriter, request *http.Request) {
 		err = importLevels(params.GuildID, params.Source)
 		break
 	}
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(writer, "Failed to modify levels: ", err)
+		return
+	}
 	fmt.Fprint(writer, "Completed successfully")
 
 }
