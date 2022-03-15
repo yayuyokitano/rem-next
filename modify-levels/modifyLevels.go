@@ -183,6 +183,7 @@ func handleMee6Page(guildID string, curPage int, m *Mee6) (lastPage bool, err er
 	if len(m.Users) == 0 {
 		lastPage = true
 	}
+	fmt.Println(m)
 	return
 }
 
@@ -201,6 +202,7 @@ func importMEE6(guildID string) (err error) {
 			}
 		}
 		for _, user := range m.Users {
+			fmt.Println(user)
 			users = append(users, DBEntry{
 				guildID,
 				user.ID,
@@ -214,6 +216,7 @@ func importMEE6(guildID string) (err error) {
 		}
 		curPage++
 	}
+	fmt.Println(users)
 	_, err = pool.CopyFrom(
 		context.Background(),
 		pgx.Identifier{"guildXP"},
