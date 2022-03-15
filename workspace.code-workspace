@@ -29,6 +29,9 @@
     },
     {
       "path": "confirm-permission"
+    },
+    {
+      "path": "modify-levels"
     }
   ],
   "settings": {}

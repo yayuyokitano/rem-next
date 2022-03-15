@@ -22,6 +22,17 @@ func main() {
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guilds(
 		guildID VARCHAR(18) PRIMARY KEY
 	)`)
+	_, err = conn.Exec(ctx, `ALTER TABLE guilds ADD COLUMN cumulativeRoles BOOL NOT NULL DEFAULT FALSE`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS rolerewards(
+		guildID VARCHAR(18) NOT NULL,
+		roleID VARCHAR(18) NOT NULL,
+		level INTEGER NOT NULL,
+		color INTEGER NOT NULL
+	)`)
 	if err != nil {
 		panic(err)
 	}
@@ -39,6 +50,8 @@ func main() {
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guildXP(
 		guildID VARCHAR(18) NOT NULL,
 		userID VARCHAR(18) NOT NULL,
+		nickname VARCHAR(32) NOT NULL,
+		avatar VARCHAR(34) NOT NULL,
 		xp BIGINT NOT NULL
 	)`)
 	_, err = conn.Exec(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS xplookup ON guildXP(guildID, userID)`)
