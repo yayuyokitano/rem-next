@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -123,8 +124,12 @@ func confirmPermission(guildID string, callerID string, token int64) (err error)
 		return
 	}
 	defer resp.Body.Close()
+	rawBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
 	if resp.StatusCode != http.StatusOK {
-		err = errors.New("Invalid token or user, or insufficient guild permissions")
+		err = errors.New("Invalid token or user, or insufficient guild permissions: " + string(rawBody))
 		return
 	}
 	return
