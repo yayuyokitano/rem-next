@@ -166,6 +166,7 @@ func importLevels(guildID string, source string) (err error) {
 }
 
 func handleMee6Page(guildID string, curPage int, m *Mee6) (lastPage bool, err error) {
+	fmt.Println("Handling page", curPage)
 	resp, err := http.Get(fmt.Sprintf("https://mee6.xyz/api/plugins/levels/leaderboard/%s?page=%d", guildID, curPage))
 	if err != nil {
 		return
