@@ -224,7 +224,7 @@ func importMEE6(guildID string) (err error) {
 	fmt.Println(users)
 	_, err = pool.CopyFrom(
 		context.Background(),
-		pgx.Identifier{"guildXP"},
+		pgx.Identifier{"guildxp"},
 		[]string{"guildID", "userID", "nickname", "avatar", "xp"},
 		pgx.CopyFromRows(users),
 	)
@@ -240,7 +240,7 @@ func importMEE6(guildID string) (err error) {
 	}
 	_, err = pool.CopyFrom(
 		context.Background(),
-		pgx.Identifier{"roleRewards"},
+		pgx.Identifier{"rolerewards"},
 		[]string{"guildID", "roleID", "level", "color"},
 		pgx.CopyFromRows(roleRewardInsert),
 	)
