@@ -225,9 +225,12 @@ func importMEE6(guildID string) (err error) {
 	_, err = pool.CopyFrom(
 		context.Background(),
 		pgx.Identifier{"guildxp"},
-		[]string{"guildID", "userID", "nickname", "avatar", "xp"},
+		[]string{"guildid", "userid", "nickname", "avatar", "xp"},
 		pgx.CopyFromRows(users),
 	)
+	if err != nil {
+		return
+	}
 
 	roleRewardInsert := make(DBEntries, 0)
 	for _, r := range roleRewards {
@@ -241,7 +244,7 @@ func importMEE6(guildID string) (err error) {
 	_, err = pool.CopyFrom(
 		context.Background(),
 		pgx.Identifier{"rolerewards"},
-		[]string{"guildID", "roleID", "level", "color"},
+		[]string{"guildid", "roleid", "level", "color"},
 		pgx.CopyFromRows(roleRewardInsert),
 	)
 
