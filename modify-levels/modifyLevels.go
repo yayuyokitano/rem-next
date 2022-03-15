@@ -113,9 +113,12 @@ func modifyLevels(writer http.ResponseWriter, request *http.Request) {
 	switch params.Operation {
 	case "reset":
 		err = resetLevels(params.GuildID)
+		break
 	case "import":
 		err = importLevels(params.GuildID, params.Source)
+		break
 	}
+	fmt.Fprint(writer, "Completed successfully")
 
 }
 
@@ -139,8 +142,8 @@ func confirmPermission(guildID string, callerID string, token int64) (err error)
 }
 
 func resetLevels(guildID string) (err error) {
-	_, err = pool.Exec(context.Background(), "DELETE FROM guildxp WHERE guild_id = $1", guildID)
-	_, err = pool.Exec(context.Background(), "DELETE FROM rolerewards WHERE guild_id = $1", guildID)
+	_, err = pool.Exec(context.Background(), "DELETE FROM guildxp WHERE guildID = $1", guildID)
+	_, err = pool.Exec(context.Background(), "DELETE FROM rolerewards WHERE guildID = $1", guildID)
 	return
 }
 
