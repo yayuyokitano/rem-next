@@ -107,6 +107,9 @@ func modifyLevels(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	fmt.Println(params)
+	fmt.Println(params.Operation)
+
 	switch params.Operation {
 	case "reset":
 		err = resetLevels(params.GuildID)
