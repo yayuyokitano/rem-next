@@ -2,6 +2,7 @@ package reminteraction
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -29,6 +30,28 @@ func TestInteractions(t *testing.T) {
 
 	if commandID == "" {
 		t.Errorf("Failed to get interaction ID")
+	}
+
+	time.Sleep(5 * time.Second) //don't get rate limited
+
+	params = fmt.Sprintf(`?name=level&guildid=%s&userid=%s&token=%s`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	t.Log(params)
+	writer = httptest.NewRecorder()
+	request = httptest.NewRequest("GET", "/interaction"+params, nil)
+
+	interaction(writer, request)
+
+	if writer.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
+	}
+
+	rawBody, err := io.ReadAll(writer.Body)
+	if err != nil {
+		t.Errorf("Failed to read body: %s\n", err)
+	}
+
+	if string(rawBody) != string(append([]byte(`["display"]`), 10)) {
+		t.Errorf("Expected %s, got %s\n", []byte(`["display"]\n`), rawBody)
 	}
 
 	time.Sleep(5 * time.Second) //don't get rate limited

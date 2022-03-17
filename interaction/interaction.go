@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -40,6 +41,11 @@ var pool *pgxpool.Pool
 func interaction(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
+
+	if request.Method == "GET" {
+		getInteractionDetails(writer, request)
+		return
+	}
 
 	var params InteractionParams
 
@@ -157,6 +163,79 @@ func deleteInteraction(commandID string) (err error) {
 	return
 }
 
+type InteractionNames struct {
+	Options []struct {
+		Name string `json:"name"`
+	} `json:"options"`
+}
+
+func getInteractionDetails(writer http.ResponseWriter, request *http.Request) {
+	urlParams := request.URL.Query()
+
+	if urlParams.Get("name") == "" || urlParams.Get("guildid") == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Missing parameters.")
+		return
+	}
+
+	token, err := strconv.ParseInt(urlParams.Get("token"), 10, 64)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Invalid token: ", err)
+		return
+	}
+	if err := confirmPermissions(urlParams.Get("userid"), token, urlParams.Get("guildid")); err != nil {
+		writer.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
+		return
+	}
+
+	commandID, err := getInteraction(urlParams.Get("guildid"), urlParams.Get("name"))
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Command not found.")
+		return
+	}
+
+	interactionURL := fmt.Sprintf("%s/applications/%s/guilds/%s/commands/%s", os.Getenv("DISCORD_BASE_URI"), os.Getenv("DISCORD_CLIENT_ID"), urlParams.Get("guildid"), commandID)
+
+	req, err := http.NewRequest(http.MethodGet, interactionURL, nil)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(writer, "Failed to create request", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bot %s", os.Getenv("DISCORD_TOKEN")))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(writer, "Failed to get interaction: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	var interactionNames InteractionNames
+	err = json.NewDecoder(resp.Body).Decode(&interactionNames)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(writer, "Failed to decode interaction: ", err)
+		return
+	}
+
+	names := make([]string, len(interactionNames.Options))
+	for i, option := range interactionNames.Options {
+		names[i] = option.Name
+	}
+
+	json.NewEncoder(writer).Encode(names)
+	return
+
+}
+
 type ConfirmPermissionParams struct {
 	UserID  string `json:"userID"`
 	Token   int64  `json:"token"`
@@ -219,7 +298,7 @@ func addInteraction(params InteractionParams, writer http.ResponseWriter) {
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		writer.WriteHeader(http.StatusInternalServerError)
 		respBody, _ := io.ReadAll(resp.Body)
-		fmt.Fprint(writer, "Failed to create interaction", resp.StatusCode, string(respBody))
+		fmt.Fprint(writer, "Failed to create interaction: ", resp.StatusCode, string(respBody))
 		return
 	}
 

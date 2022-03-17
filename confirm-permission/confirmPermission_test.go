@@ -30,7 +30,7 @@ func TestConfirmPermission(t *testing.T) {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusUnauthorized, writer.Code, writer.Body)
 	}
 
-	paramsLackingPermissions = fmt.Sprintf(`{"guildID":"%s", "userID":"%s", "token":%s}`, "445563677085794315", os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	paramsLackingPermissions = fmt.Sprintf(`{"guildID":"%s", "userID":"%s", "token":%s}`, "868012888827256882", os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("POST", "/confirm-permission", strings.NewReader(paramsLackingPermissions))
 
