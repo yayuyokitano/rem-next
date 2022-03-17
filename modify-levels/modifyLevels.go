@@ -100,6 +100,8 @@ func modifyLevels(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	fmt.Println(params)
+
 	err = confirmPermission(params.GuildID, params.CallerID, params.Token)
 	if err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
