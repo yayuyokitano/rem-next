@@ -88,21 +88,8 @@ type Interaction struct {
 var interactions = map[string]interactionStructure{
 	"level": {
 		Description: "Show level or level leaderboard related things.",
-		Options: []Option{
-			{
-				Type:        oSubCommand,
-				Name:        "display",
-				Description: "Display the level of a user.",
-				Options: []Option{
-					{
-						Type:        oUser,
-						Name:        "user",
-						Description: "The user to show the level of, defaults to yourself.",
-					},
-				},
-			},
-		},
-		Type: iChatInput,
+		Options:     []Option{},
+		Type:        iChatInput,
 	},
 	"test": {
 		Description: "Test interaction.",
@@ -111,11 +98,35 @@ var interactions = map[string]interactionStructure{
 	},
 }
 
-func createInteraction(name string, defaultPermission bool) (interaction Interaction, err error) {
+var subCommands = map[string]Option{
+	"levelDisplay": {
+		Type:        oSubCommand,
+		Name:        "display",
+		Description: "Display the level of a user.",
+		Options: []Option{
+			{
+				Type:        oUser,
+				Name:        "user",
+				Description: "The user to show the level of, defaults to yourself.",
+			},
+		},
+	},
+}
+
+func createInteraction(name string, subcommands []string, defaultPermission bool) (interaction Interaction, err error) {
 	structure, ok := interactions[name]
 	if !ok {
 		err = errors.New("interaction not found")
 		return
+	}
+
+	for _, subcommand := range subcommands {
+		subcommand, ok := subCommands[subcommand]
+		if !ok {
+			err = errors.New("subcommand not found")
+			return
+		}
+		structure.Options = append(structure.Options, subcommand)
 	}
 
 	interaction = Interaction{

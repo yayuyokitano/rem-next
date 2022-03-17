@@ -12,11 +12,11 @@ import (
 
 func TestInteractions(t *testing.T) {
 
-	params := fmt.Sprintf(`{"name":"test", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	params := fmt.Sprintf(`{"name":"test", "subCommands":["levelDisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer := httptest.NewRecorder()
 	request := httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
 
-	addInteraction(writer, request)
+	interaction(writer, request)
 
 	if writer.Code != http.StatusOK {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
@@ -36,7 +36,7 @@ func TestInteractions(t *testing.T) {
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("DELETE", "/interaction", strings.NewReader(params))
 
-	removeInteraction(writer, request)
+	interaction(writer, request)
 
 	if writer.Code != http.StatusOK {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
@@ -47,11 +47,48 @@ func TestInteractions(t *testing.T) {
 		t.Errorf("Expected error, got none")
 	}
 
-	paramsLackingPermissions := fmt.Sprintf(`{"name":"test", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), "267794154459889664", os.Getenv("REM_TEST_TOKEN"))
+	time.Sleep(5 * time.Second) //don't get rate limited
+
+	writer = httptest.NewRecorder()
+	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
+
+	interaction(writer, request)
+
+	if writer.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
+	}
+
+	commandID, err = getInteraction(os.Getenv("REM_TEST_GUILDID"), "test")
+	if err != nil {
+		t.Errorf("Failed to get interaction: %s\n", err)
+	}
+
+	if commandID == "" {
+		t.Errorf("Failed to get interaction ID")
+	}
+
+	time.Sleep(5 * time.Second) //don't get rate limited
+
+	params = fmt.Sprintf(`{"name":"test", "subCommands":[], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	writer = httptest.NewRecorder()
+	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
+
+	interaction(writer, request)
+
+	if writer.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
+	}
+
+	commandID, err = getInteraction(os.Getenv("REM_TEST_GUILDID"), "test")
+	if err == nil {
+		t.Errorf("Expected error, got none")
+	}
+
+	paramsLackingPermissions := fmt.Sprintf(`{"name":"test", "subCommands":["levelDisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), "267794154459889664", os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(paramsLackingPermissions))
 
-	addInteraction(writer, request)
+	interaction(writer, request)
 
 	if writer.Code != http.StatusUnauthorized {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusUnauthorized, writer.Code, writer.Body)
@@ -59,11 +96,11 @@ func TestInteractions(t *testing.T) {
 
 	time.Sleep(5 * time.Second) //don't get rate limited
 
-	params = fmt.Sprintf(`{"name":"test", "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	params = fmt.Sprintf(`{"name":"test", "subCommands":["levelDisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
 
-	addInteraction(writer, request)
+	interaction(writer, request)
 
 	if writer.Code != http.StatusOK {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)

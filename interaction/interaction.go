@@ -41,15 +41,37 @@ func interaction(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
 
+	var params InteractionParams
+
+	if err := json.NewDecoder(request.Body).Decode(&params); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(writer, "Failed to decode request body", err)
+		return
+	}
+	if params.Name == "" || params.GuildID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Missing parameters.")
+		return
+	}
+	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
+		writer.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
+		return
+	}
+
 	switch request.Method {
 	case "DELETE":
-		removeInteraction(writer, request)
+		removeInteraction(params, writer)
 		break
 	case "PUT":
-		addInteraction(writer, request)
+		if len(params.SubCommands) == 0 {
+			removeInteraction(params, writer)
+		} else {
+			addInteraction(params, writer)
+		}
 		break
 	case "PATCH":
-		modifyPermissions(writer, request)
+		modifyPermissions(params, writer)
 		break
 	default:
 		writer.WriteHeader(http.StatusMethodNotAllowed)
@@ -78,11 +100,13 @@ type UserPerms []struct {
 }
 
 type InteractionParams struct {
-	Name              string `json:"name"`
-	DefaultPermission bool   `json:"defaultPermission"`
-	GuildID           string `json:"guildID"`
-	UserID            string `json:"userID"`
-	Token             int64  `json:"token"`
+	Name              string       `json:"name"`
+	SubCommands       []string     `json:"subCommands"`
+	DefaultPermission bool         `json:"defaultPermission"`
+	GuildID           string       `json:"guildID"`
+	UserID            string       `json:"userID"`
+	Token             int64        `json:"token"`
+	Permissions       []Permission `json:"permissions"`
 }
 
 type CommandDetails struct {
@@ -142,28 +166,9 @@ type ConfirmPermissionParams struct {
 	GuildID string `json:"guildID"`
 }
 
-func addInteraction(writer http.ResponseWriter, request *http.Request) {
+func addInteraction(params InteractionParams, writer http.ResponseWriter) {
 
-	var params InteractionParams
-
-	if err := json.NewDecoder(request.Body).Decode(&params); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to decode request body", err)
-		return
-	}
-	if params.Name == "" || params.GuildID == "" {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Missing parameters.")
-		return
-	}
-
-	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
-		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
-		return
-	}
-
-	interaction, err := createInteraction(params.Name, params.DefaultPermission)
+	interaction, err := createInteraction(params.Name, params.SubCommands, params.DefaultPermission)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -243,26 +248,7 @@ func addInteraction(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-func removeInteraction(writer http.ResponseWriter, request *http.Request) {
-
-	var params InteractionParams
-
-	if err := json.NewDecoder(request.Body).Decode(&params); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to decode request body", err)
-		return
-	}
-	if params.Name == "" || params.GuildID == "" {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Missing parameters.")
-		return
-	}
-
-	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
-		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
-		return
-	}
+func removeInteraction(params InteractionParams, writer http.ResponseWriter) {
 
 	commandID, err := getInteraction(params.GuildID, params.Name)
 	if err != nil {
@@ -308,34 +294,7 @@ func removeInteraction(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-type PermissionParams struct {
-	GuildID     string       `json:"guild_id"`
-	Name        string       `json:"name"`
-	UserID      string       `json:"user_id"`
-	Token       int64        `json:"token"`
-	Permissions []Permission `json:"permissions"`
-}
-
-func modifyPermissions(writer http.ResponseWriter, request *http.Request) {
-
-	var params PermissionParams
-
-	if err := json.NewDecoder(request.Body).Decode(&params); err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(writer, "Failed to decode request body", err)
-		return
-	}
-	if params.Name == "" || params.GuildID == "" {
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(writer, "Missing parameters.")
-		return
-	}
-
-	if err := confirmPermissions(params.UserID, params.Token, params.GuildID); err != nil {
-		writer.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(writer, "Invalid token or user, or insufficient guild permissions: ", err)
-		return
-	}
+func modifyPermissions(params InteractionParams, writer http.ResponseWriter) {
 
 	commandID, err := getInteraction(params.GuildID, params.Name)
 	if err != nil {
