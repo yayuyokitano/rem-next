@@ -40,6 +40,7 @@ var pool *pgxpool.Pool
 func interaction(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
+	writer.Header().Add("Access-Control-Allow-Methods", "DELETE, PUT, PATCH")
 
 	var params InteractionParams
 
