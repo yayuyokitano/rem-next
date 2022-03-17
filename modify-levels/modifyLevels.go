@@ -179,6 +179,10 @@ func handleMee6Page(guildID string, curPage int, m *Mee6) (lastPage bool, err er
 		return
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusUnauthorized {
+		err = errors.New("MEE6AuthError")
+		return
+	}
 	if resp.StatusCode != http.StatusOK {
 		err = errors.New("Failed to get page")
 		return
