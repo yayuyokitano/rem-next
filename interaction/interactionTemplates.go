@@ -99,7 +99,7 @@ var interactions = map[string]interactionStructure{
 }
 
 var subCommands = map[string]Option{
-	"levelDisplay": {
+	"leveldisplay": {
 		Type:        oSubCommand,
 		Name:        "display",
 		Description: "Display the level of a user.",

@@ -12,7 +12,7 @@ import (
 
 func TestInteractions(t *testing.T) {
 
-	params := fmt.Sprintf(`{"name":"test", "subCommands":["levelDisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	params := fmt.Sprintf(`{"name":"test", "subCommands":["leveldisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer := httptest.NewRecorder()
 	request := httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
 
@@ -84,7 +84,7 @@ func TestInteractions(t *testing.T) {
 		t.Errorf("Expected error, got none")
 	}
 
-	paramsLackingPermissions := fmt.Sprintf(`{"name":"test", "subCommands":["levelDisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), "267794154459889664", os.Getenv("REM_TEST_TOKEN"))
+	paramsLackingPermissions := fmt.Sprintf(`{"name":"test", "subCommands":["leveldisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), "267794154459889664", os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(paramsLackingPermissions))
 
@@ -96,7 +96,7 @@ func TestInteractions(t *testing.T) {
 
 	time.Sleep(5 * time.Second) //don't get rate limited
 
-	params = fmt.Sprintf(`{"name":"test", "subCommands":["levelDisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	params = fmt.Sprintf(`{"name":"test", "subCommands":["leveldisplay"], "defaultPermission":true, "guildID":"%s", "userID":"%s", "token":%s}`, os.Getenv("REM_TEST_GUILDID"), os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
 	writer = httptest.NewRecorder()
 	request = httptest.NewRequest("PUT", "/interaction", strings.NewReader(params))
 
