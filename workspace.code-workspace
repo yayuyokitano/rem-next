@@ -32,6 +32,9 @@
     },
     {
       "path": "modify-levels"
+    },
+    {
+      "path": "blocklist"
     }
   ],
   "settings": {}

@@ -20,27 +20,38 @@ func main() {
 	defer conn.Close(ctx)
 	_, err = conn.Exec(ctx, "\\c "+os.Getenv("DATABASE_NAME"))
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guilds(
-		guildID VARCHAR(18) PRIMARY KEY
+		guildID VARCHAR(20) PRIMARY KEY
 	)`)
-	_, err = conn.Exec(ctx, `ALTER TABLE guilds ADD COLUMN cumulativeRoles BOOL NOT NULL DEFAULT FALSE`)
+	_, err = conn.Exec(ctx, `ALTER TABLE guilds ADD COLUMN IF NOT EXISTS cumulativeRoles BOOL NOT NULL DEFAULT FALSE`)
 	if err != nil {
 		panic(err)
 	}
 
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS rolerewards(
-		guildID VARCHAR(18) NOT NULL,
-		roleID VARCHAR(18) NOT NULL,
+		guildID VARCHAR(20) NOT NULL,
+		roleID VARCHAR(20) NOT NULL,
 		level INTEGER NOT NULL,
 		color INTEGER NOT NULL
 	)`)
+	_, err = conn.Exec(ctx, `ALTER TABLE rolerewards ADD COLUMN IF NOT EXISTS persistent BOOL NOT NULL DEFAULT FALSE`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS channelblocklist(
+		guildID VARCHAR(20) NOT NULL,
+		channelID VARCHAR(20) PRIMARY KEY,
+		xpgain bool NOT NULL DEFAULT FALSE
+	)`)
+	_, err = conn.Exec(ctx, `CREATE INDEX IF NOT EXISTS channelguildid ON channelblocklist(guildID)`)
 	if err != nil {
 		panic(err)
 	}
 
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS commands(
-		commandID VARCHAR(18) PRIMARY KEY,
-		guildID VARCHAR(18) NOT NULL,
-		commandName VARCHAR(18) NOT NULL
+		commandID VARCHAR(20) PRIMARY KEY,
+		guildID VARCHAR(20) NOT NULL,
+		commandName VARCHAR(32) NOT NULL
 	)`)
 	_, err = conn.Exec(ctx, `CREATE INDEX IF NOT EXISTS command ON commands(guildID, commandName)`)
 	if err != nil {
@@ -48,8 +59,8 @@ func main() {
 	}
 
 	_, err = conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS guildXP(
-		guildID VARCHAR(18) NOT NULL,
-		userID VARCHAR(18) NOT NULL,
+		guildID VARCHAR(20) NOT NULL,
+		userID VARCHAR(20) NOT NULL,
 		nickname VARCHAR(32) NOT NULL,
 		avatar VARCHAR(34) NOT NULL,
 		xp BIGINT NOT NULL
