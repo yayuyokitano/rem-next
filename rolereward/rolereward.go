@@ -1,4 +1,4 @@
-package remblocklist
+package remrolereward
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	functions.HTTP("blocklist", blocklist)
+	functions.HTTP("rolereward", roleReward)
 }
 
 var client *pubsub.Client
@@ -50,15 +50,16 @@ func corsHandler(writer http.ResponseWriter, request *http.Request) {
 }
 
 type Params struct {
-	GuildID   string `json:"guildID"`
-	ChannelID string `json:"channelID"`
-	Token     int64  `json:"token"`
-	UserID    string `json:"userID"`
-	ListType  string `json:"listType"`
-	State     bool   `json:"state"`
+	GuildID    string `json:"guildID"`
+	RoleID     string `json:"roleID"`
+	Token      int64  `json:"token"`
+	UserID     string `json:"userID"`
+	Level      int    `json:"level"`
+	Persistent bool   `json:"persistent"`
+	State      bool   `json:"state"`
 }
 
-func blocklist(writer http.ResponseWriter, request *http.Request) {
+func roleReward(writer http.ResponseWriter, request *http.Request) {
 
 	corsHandler(writer, request)
 
@@ -69,7 +70,7 @@ func blocklist(writer http.ResponseWriter, request *http.Request) {
 		fmt.Fprint(writer, "Failed to decode request body", err)
 		return
 	}
-	if params.GuildID == "" || params.ChannelID == "" || params.Token == 0 || params.UserID == "" {
+	if params.GuildID == "" || params.RoleID == "" || params.Token == 0 || params.UserID == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(writer, "Missing parameters")
 		return
@@ -81,13 +82,13 @@ func blocklist(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err := pushToDB(params.GuildID, params.ChannelID, params.ListType, params.State, request); err != nil {
+	if err := pushToDB(params.GuildID, params.RoleID, params.Level, params.Persistent, params.State, request); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to push to DB: ", err)
 		return
 	}
 
-	if err := pushToRemraku(params.GuildID, params.ChannelID, params.ListType, params.State, request); err != nil {
+	if err := pushToRemraku(params.GuildID, params.RoleID, params.Level, params.Persistent, params.State, request); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(writer, "Failed to push to Remraku: ", err)
 		return
@@ -114,45 +115,45 @@ func confirmPermission(guildID string, callerID string, token int64) (err error)
 	return
 }
 
-func pushToDB(guildID string, channelID string, listType string, state bool, request *http.Request) (err error) {
+func pushToDB(guildID string, roleID string, level int, persistent bool, state bool, request *http.Request) (err error) {
 
 	err = createPool()
 	if err != nil {
 		return
 	}
 
-	if !contains([]string{"xpgain"}, listType) {
-		err = errors.New("Invalid list type")
-		return
+	if state {
+		_, err = pool.Exec(request.Context(), "INSERT INTO roleRewards (guildID, roleID, level, persistent) VALUES ($1, $2, $3, $4) ON CONFLICT (guildID, roleID, level) DO UPDATE SET persistent = $4", guildID, roleID, level, persistent)
+	} else {
+		_, err = pool.Exec(request.Context(), "DELETE FROM roleRewards WHERE guildID = $1 AND roleID = $2 AND level = $3", guildID, roleID, level)
 	}
-
-	_, err = pool.Exec(request.Context(), fmt.Sprintf("INSERT INTO channelblocklist (guildID, channelID, %s) VALUES ($1, $2, $3) ON CONFLICT (channelID) DO UPDATE SET %s = $3", listType, listType), guildID, channelID, state)
-
 	return
 
 }
 
-type blocklistMessage struct {
-	Type      string `json:"type"`
-	GuildID   string `json:"guildID"`
-	ChannelID string `json:"channelID"`
-	ListType  string `json:"listType"`
-	State     bool   `json:"state"`
+type rolerewardMessage struct {
+	Type       string `json:"type"`
+	GuildID    string `json:"guildID"`
+	RoleID     string `json:"roleID"`
+	Level      int    `json:"level"`
+	Persistent bool   `json:"persistent"`
+	State      bool   `json:"state"`
 }
 
-func pushToRemraku(guildID string, channelID string, listType string, state bool, request *http.Request) (err error) {
+func pushToRemraku(guildID string, roleID string, level int, persistent bool, state bool, request *http.Request) (err error) {
 
 	client, err = pubsub.NewClient(context.Background(), os.Getenv("GCP_PROJECT_ID"))
 	if err != nil {
 		return
 	}
 
-	pubsubRaw, err := json.Marshal(blocklistMessage{
-		Type:      "blocklist",
-		GuildID:   guildID,
-		ChannelID: channelID,
-		ListType:  listType,
-		State:     state,
+	pubsubRaw, err := json.Marshal(rolerewardMessage{
+		Type:       "rolereward",
+		GuildID:    guildID,
+		RoleID:     roleID,
+		Level:      level,
+		Persistent: persistent,
+		State:      state,
 	})
 	if err != nil {
 		return

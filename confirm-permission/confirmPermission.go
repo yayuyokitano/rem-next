@@ -6,11 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/datastore"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -64,7 +62,7 @@ func confirmPermission(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	_, err := verifyGuild(params.GuildID)
+	err := verifyGuild(params.GuildID, params.Token)
 	if err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(writer, "Failed to verify guild: ", err)
@@ -92,9 +90,9 @@ type UserPerms []struct {
 }
 
 func verifyUser(userID string, Token int64, guildID string) (err error) {
-
 	resp, err := http.Post(os.Getenv("GCP_BASE_URI")+"verify-user", "application/json", strings.NewReader(fmt.Sprintf(`{"userID":"%s","token":%d}`, userID, Token)))
 	if err != nil {
+		err = errors.New("Failed to verify user: " + err.Error())
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -186,7 +184,7 @@ type Token struct {
 	RefreshToken string `datastore:"refreshToken"`
 }
 
-func verifyGuild(guildID string) (tokenData Token, err error) {
+func verifyGuild(guildID string, token int64) (err error) {
 
 	ctx := context.Background()
 	projectID := os.Getenv("GCP_PROJECT_ID")
@@ -196,38 +194,15 @@ func verifyGuild(guildID string) (tokenData Token, err error) {
 	}
 	defer client.Close()
 
+	var tokenData Token
+
 	err = client.Get(ctx, datastore.NameKey("Guild", guildID, nil), &tokenData)
 	if err != nil {
 		return
 	}
 
-	// Refresh token if expired, else just fetch updated guild data
-
-	if tokenData.ExpiresAt < time.Now().Unix() {
-
-		var auth Auth
-		auth, err = refreshToken(tokenData.RefreshToken)
-		if err != nil {
-			return
-		}
-
-		tokenData = Token{
-			ExpiresAt:    time.Now().Unix() + int64(auth.ExpiresIn),
-			AccessToken:  auth.AccessToken,
-			RefreshToken: auth.RefreshToken,
-		}
-
-	}
-
-	err = updateToken(tokenData, guildID)
-	if err != nil {
-		return
-	}
-
-	tokenData = Token{
-		ExpiresAt:    tokenData.ExpiresAt,
-		AccessToken:  tokenData.AccessToken,
-		RefreshToken: tokenData.RefreshToken,
+	if tokenData.AccessToken == "" {
+		err = errors.New("No token found")
 	}
 
 	return
@@ -251,36 +226,4 @@ func updateToken(tokenData Token, guildID string) (err error) {
 
 	return
 
-}
-
-func refreshToken(refreshToken string) (auth Auth, err error) {
-
-	baseUri := os.Getenv("DISCORD_BASE_URI")
-	clientID := os.Getenv("DISCORD_CLIENT_ID")
-	clientSecret := os.Getenv("DISCORD_SECRET")
-
-	formData := url.Values{
-		"grant_type":    {"refresh_token"},
-		"client_id":     {clientID},
-		"client_secret": {clientSecret},
-		"refresh_token": {refreshToken},
-	}
-
-	resp, err := http.PostForm(baseUri+"/oauth2/token", formData)
-
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	if err = json.NewDecoder(resp.Body).Decode(&auth); err != nil {
-		return
-	}
-
-	if auth.AccessToken == "" {
-		err = errors.New("Failed to get access token from discord")
-		return
-	}
-
-	return
 }

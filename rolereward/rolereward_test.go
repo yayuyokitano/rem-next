@@ -1,4 +1,4 @@
-package remblocklist
+package remrolereward
 
 import (
 	"bytes"
@@ -16,13 +16,14 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-func TestGuilds(t *testing.T) {
+func TestRoleReward(t *testing.T) {
 
 	err := createPool()
 	if err != nil {
 		t.Errorf("Failed to create pool: %s\n", err)
 	}
 
+	var curPersistent bool
 	var curState bool
 	var curErr error
 	receivedMessage := false
@@ -45,12 +46,13 @@ func TestGuilds(t *testing.T) {
 	}
 
 	params := Params{
-		GuildID:   os.Getenv("REM_TEST_GUILDID"),
-		ChannelID: os.Getenv("REM_TEST_CHANNELID"),
-		UserID:    os.Getenv("REM_TEST_USERID"),
-		Token:     token,
-		ListType:  "xpgain",
-		State:     true,
+		GuildID:    os.Getenv("REM_TEST_GUILDID"),
+		RoleID:     os.Getenv("REM_TEST_ROLEID"),
+		UserID:     os.Getenv("REM_TEST_USERID"),
+		Token:      token,
+		Level:      100,
+		Persistent: true,
+		State:      true,
 	}
 	jsonParams, err := json.Marshal(params)
 	if err != nil {
@@ -59,9 +61,9 @@ func TestGuilds(t *testing.T) {
 	}
 
 	writer := httptest.NewRecorder()
-	request := httptest.NewRequest("POST", "/blocklist", bytes.NewReader(jsonParams))
+	request := httptest.NewRequest("POST", "/rolereward", bytes.NewReader(jsonParams))
 
-	blocklist(writer, request)
+	roleReward(writer, request)
 
 	if writer.Code != http.StatusOK {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
@@ -72,7 +74,7 @@ func TestGuilds(t *testing.T) {
 
 	err = sub.Receive(cctx, func(_ context.Context, msg *pubsub.Message) {
 		receivedMessage = true
-		curState, curErr = handlePubsub(msg, t)
+		curPersistent, curState, curErr = handlePubsub(msg, t)
 	})
 	if err != nil {
 		t.Errorf("Receive: %v", err)
@@ -86,26 +88,31 @@ func TestGuilds(t *testing.T) {
 
 	receivedMessage = false
 
+	if curPersistent != true {
+		t.Errorf("Expected true, got %t\n", curPersistent)
+		return
+	}
+
 	if curState != true {
 		t.Errorf("Expected true, got %t\n", curState)
 		return
 	}
 
-	curState, curErr = checkSQL()
+	curPersistent, curErr = checkSQL()
 	if curErr != nil {
 		t.Errorf("Failed to check SQL: %s\n", curErr)
 		return
 	}
 
-	if curState != true {
-		t.Errorf("Expected true, got %t\n", curState)
+	if curPersistent != true {
+		t.Errorf("Expected true, got %t\n", curPersistent)
 		return
 	}
 
 	cctx, cancel = context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	params.State = false
+	params.Persistent = false
 	jsonParams, err = json.Marshal(params)
 	if err != nil {
 		t.Errorf("Failed to marshal params: %s\n", err)
@@ -113,9 +120,9 @@ func TestGuilds(t *testing.T) {
 	}
 
 	writer = httptest.NewRecorder()
-	request = httptest.NewRequest("POST", "/blocklist", bytes.NewReader(jsonParams))
+	request = httptest.NewRequest("POST", "/rolereward", bytes.NewReader(jsonParams))
 
-	blocklist(writer, request)
+	roleReward(writer, request)
 
 	if writer.Code != http.StatusOK {
 		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
@@ -124,14 +131,74 @@ func TestGuilds(t *testing.T) {
 
 	err = sub.Receive(cctx, func(_ context.Context, msg *pubsub.Message) {
 		receivedMessage = true
-		curState, curErr = handlePubsub(msg, t)
+		curPersistent, curState, curErr = handlePubsub(msg, t)
 	})
 	if err != nil {
 		t.Errorf("Receive: %v", err)
 		return
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(2 * time.Second)
+
+	if curErr != nil || !receivedMessage {
+		t.Errorf("Failed to receive message: %s\n", curErr)
+		return
+	}
+
+	receivedMessage = false
+
+	if curPersistent != false {
+		t.Errorf("Expected false, got %t\n", curPersistent)
+		return
+	}
+
+	if curState != true {
+		t.Errorf("Expected true, got %t\n", curState)
+		return
+	}
+
+	curPersistent, curErr = checkSQL()
+	if curErr != nil {
+		t.Errorf("Failed to check SQL: %s\n", curErr)
+		return
+	}
+
+	if curPersistent != false {
+		t.Errorf("Expected false, got %t\n", curPersistent)
+		return
+	}
+
+	params.State = false
+
+	cctx, cancel = context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	jsonParams, err = json.Marshal(params)
+	if err != nil {
+		t.Errorf("Failed to marshal params: %s\n", err)
+		return
+	}
+
+	writer = httptest.NewRecorder()
+	request = httptest.NewRequest("POST", "/rolereward", bytes.NewReader(jsonParams))
+
+	roleReward(writer, request)
+
+	if writer.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
+		return
+	}
+
+	err = sub.Receive(cctx, func(_ context.Context, msg *pubsub.Message) {
+		receivedMessage = true
+		curPersistent, curState, curErr = handlePubsub(msg, t)
+	})
+	if err != nil {
+		t.Errorf("Receive: %v", err)
+		return
+	}
+
+	time.Sleep(2 * time.Second)
 
 	if curErr != nil || !receivedMessage {
 		t.Errorf("Failed to receive message: %s\n", curErr)
@@ -145,59 +212,36 @@ func TestGuilds(t *testing.T) {
 		return
 	}
 
-	curState, curErr = checkSQL()
-	if curErr != nil {
-		t.Errorf("Failed to check SQL: %s\n", curErr)
-		return
-	}
-
-	if curState != false {
-		t.Errorf("Expected false, got %t\n", curState)
-		return
-	}
-
-	params.ListType = "xpgai"
-	jsonParams, err = json.Marshal(params)
-	if err != nil {
-		t.Errorf("Failed to marshal params: %s\n", err)
-		return
-	}
-
-	writer = httptest.NewRecorder()
-	request = httptest.NewRequest("POST", "/blocklist", bytes.NewReader(jsonParams))
-
-	blocklist(writer, request)
-
-	time.Sleep(5 * time.Second)
-
-	if writer.Code != http.StatusInternalServerError {
-		t.Errorf("Expected %d, got %d:%s\n", http.StatusInternalServerError, writer.Code, writer.Body)
+	curPersistent, curErr = checkSQL()
+	if curErr.Error() != "no rows in result set" {
+		t.Errorf("Incorrect error: expected %s, got %s\n", "no rows in result set", curErr)
 		return
 	}
 
 }
 
-func handlePubsub(msg *pubsub.Message, t *testing.T) (state bool, err error) {
+func handlePubsub(msg *pubsub.Message, t *testing.T) (persistent bool, state bool, err error) {
 	msg.Ack()
-	var message blocklistMessage
+	var message rolerewardMessage
 	err = json.Unmarshal(msg.Data, &message)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("json.Unmarshal: %v", err))
 		return
 	}
 
-	if message.ListType != "xpgain" || message.Type != "blocklist" || message.GuildID != os.Getenv("REM_TEST_GUILDID") || message.ChannelID != os.Getenv("REM_TEST_CHANNELID") {
+	if message.Type != "rolereward" || message.GuildID != os.Getenv("REM_TEST_GUILDID") || message.RoleID != os.Getenv("REM_TEST_ROLEID") {
 		err = errors.New(fmt.Sprintf("Invalid message: %v", message))
 		return
 	}
 
+	persistent = message.Persistent
 	state = message.State
 	return
 }
 
 func checkSQL() (r bool, err error) {
 
-	row := pool.QueryRow(context.Background(), "SELECT xpgain FROM channelblocklist WHERE channelID = $1", os.Getenv("REM_TEST_CHANNELID"))
+	row := pool.QueryRow(context.Background(), "SELECT persistent FROM rolerewards WHERE guildid = $1", os.Getenv("REM_TEST_GUILDID"))
 	err = row.Scan(&r)
 
 	return

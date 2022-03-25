@@ -101,6 +101,8 @@ func verifyUser(writer http.ResponseWriter, request *http.Request) {
 
 	token, err := confirmUser(writer, params.Token, params.UserID)
 	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(writer, "Failed to confirm user: ", err)
 		return
 	}
 

@@ -12,10 +12,5 @@ while read p; do
   export $p
 done < secretenv.txt
 
-for d in */ ; do
-  [[ $d == __* ]] && continue
-  cd "${d%/}"
-
-  go test
-  cd ../
-done
+cd verify-user
+go test

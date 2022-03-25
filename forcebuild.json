@@ -1,0 +1,11 @@
+{
+  "steps": [
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "args": [
+        "bash", "forcedeploy.sh"
+      ]
+    }
+  ],
+  "timeout": "60000s"
+}

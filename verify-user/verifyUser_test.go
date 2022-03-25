@@ -1,12 +1,24 @@
 package remverifyuser
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 )
 
 func TestVerifyUser(t *testing.T) {
 
-	//TODO: not entirely sure how to go about automatically testing this. Probably have to inspect raw responses and mock.
-	//At least this code shouldn't randomly fail, and if it does authorizeDiscord probably will too. And that has tests.
+	params := fmt.Sprintf(`{"userID":"%s","token":%s}`, os.Getenv("REM_TEST_USERID"), os.Getenv("REM_TEST_TOKEN"))
+	writer := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/verify-user", strings.NewReader(params))
+
+	verifyUser(writer, request)
+
+	if writer.Code != http.StatusOK {
+		t.Errorf("Expected %d, got %d:%s\n", http.StatusOK, writer.Code, writer.Body)
+	}
 
 }

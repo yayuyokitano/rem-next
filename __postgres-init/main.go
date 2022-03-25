@@ -34,6 +34,7 @@ func main() {
 		color INTEGER NOT NULL
 	)`)
 	_, err = conn.Exec(ctx, `ALTER TABLE rolerewards ADD COLUMN IF NOT EXISTS persistent BOOL NOT NULL DEFAULT FALSE`)
+	_, err = conn.Exec(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS rolerewardidx ON rolerewards(guildID, roleID, level)`)
 	if err != nil {
 		panic(err)
 	}
